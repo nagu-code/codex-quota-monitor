@@ -1,0 +1,90 @@
+name: Publish certified v1.5.0 draft
+
+run-name: Publish v1.5.0 after Phase 9 by ${{ github.actor }}
+
+on:
+  workflow_dispatch:
+    inputs:
+      phase9_audit_one:
+        description: First clean Phase 9 audit evidence reference
+        required: true
+        type: string
+      phase9_audit_two:
+        description: Second clean Phase 9 audit evidence reference
+        required: true
+        type: string
+      confirmation:
+        description: Type PUBLISH v1.5.0 AFTER TWO CLEAN PHASE 9 AUDITS
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: publish-v1.5.0
+  cancel-in-progress: false
+
+jobs:
+  publish-existing-draft:
+    permissions:
+      contents: write
+    runs-on: windows-2022
+    environment: production-release
+    env:
+      GH_TOKEN: ${{ github.token }}
+      RELEASE_TAG: v1.5.0
+      EXPECTED_CONFIRMATION: PUBLISH v1.5.0 AFTER TWO CLEAN PHASE 9 AUDITS
+      AUDIT_ONE: ${{ inputs.phase9_audit_one }}
+      AUDIT_TWO: ${{ inputs.phase9_audit_two }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          fetch-depth: 0
+
+      - name: Enforce manual Phase 9 attestations
+        shell: pwsh
+        run: |
+          if ('${{ inputs.confirmation }}' -cne $env:EXPECTED_CONFIRMATION) {
+            throw 'The exact publication confirmation phrase was not supplied.'
+          }
+          if ([string]::IsNullOrWhiteSpace($env:AUDIT_ONE) -or
+              [string]::IsNullOrWhiteSpace($env:AUDIT_TWO) -or
+              $env:AUDIT_ONE -ceq $env:AUDIT_TWO) {
+            throw 'Two distinct Phase 9 audit evidence references are required.'
+          }
+          node scripts/check-public-repository.mjs
+          node scripts/validate-release-manifest.mjs --manifest .github/releases/v1.5.0.json --publish
+
+      - name: Locate the existing authenticated draft
+        id: draft
+        shell: pwsh
+        run: |
+          $releases = gh api "repos/$env:GITHUB_REPOSITORY/releases?per_page=100" | ConvertFrom-Json
+          $matches = @($releases | Where-Object { $_.tag_name -ceq $env:RELEASE_TAG })
+          if ($matches.Count -ne 1) { throw 'Exactly one existing v1.5.0 draft release is required.' }
+          $release = $matches[0]
+          if (-not $release.draft) { throw 'The existing v1.5.0 release is not a draft.' }
+          $manifest = Get-Content -Raw '.github/releases/v1.5.0.json' | ConvertFrom-Json
+          if ($release.target_commitish -cne $manifest.source.publicCommit) {
+            throw 'The draft target does not equal the certified public commit.'
+          }
+          "release_id=$($release.id)" >> $env:GITHUB_OUTPUT
+
+      - name: Download and validate the draft assets
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Path release-assets -ErrorAction Stop | Out-Null
+          gh release download $env:RELEASE_TAG --dir release-assets
+          node scripts/validate-release-assets.mjs --manifest .github/releases/v1.5.0.json --artifacts release-assets --publish
+          & ./scripts/Test-DetachedChecksumSignature.ps1 `
+            -InputPath release-assets/SHA256SUMS.txt `
+            -SignaturePath release-assets/SHA256SUMS.p7s `
+            -ExpectedThumbprint 8452BCAFAD093D33D122097AD7D112A42A26526D
+
+      - name: Publish the validated existing draft
+        shell: pwsh
+        run: |
+          $notes = Get-Content -Raw '.github/release-notes/v1.5.0.md'
+          $payload = @{ draft = $false; body = $notes; make_latest = 'false' } | ConvertTo-Json
+          $payload | gh api --method PATCH "repos/$env:GITHUB_REPOSITORY/releases/${{ steps.draft.outputs.release_id }}" --input - | Out-Null

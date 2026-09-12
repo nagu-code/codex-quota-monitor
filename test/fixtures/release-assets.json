@@ -1,0 +1,25 @@
+{
+  "description": "Harmless text payloads used to generate a non-release v1.5.0-shaped fixture.",
+  "topLevelText": {
+    "Codex-Quota-Monitor-Setup-1.5.0-x64-Unsigned.exe": "FIXTURE ONLY - not an executable or installer.\n",
+    "INSTALLATION.txt": "Fixture installation instructions. No software is included.\n",
+    "LICENSE.txt": "Fixture license text. Not release legal terms.\n",
+    "SHA256SUMS.p7s": "FIXTURE ONLY - detached-signature placeholder, not a CMS signature.\n"
+  },
+  "signedZipText": {
+    "CODEX-LICENSE.txt": "Fixture third-party license.\n",
+    "Codex-Quota-Monitor-Setup-1.5.0-x64-Nagu-Self-Signed.exe": "FIXTURE ONLY - not an executable or installer.\n",
+    "Install-NaguCodexCurrentUserCertificateTrust.ps1": "# Fixture only; does not modify a certificate store.\n",
+    "INSTALLATION.txt": "Fixture installation instructions. No software is included.\n",
+    "LICENSE.txt": "Fixture license text. Not release legal terms.\n",
+    "Nagu-Corporate-Code-Signing.cer": "FIXTURE ONLY - not a certificate.\n",
+    "PRIVACY.md": "Fixture privacy notice.\n",
+    "Remove-NaguCodexCurrentUserCertificateTrust.ps1": "# Fixture only; does not modify a certificate store.\n",
+    "SECURITY.md": "Fixture security notice.\n",
+    "SHA256SUMS.p7s": "FIXTURE ONLY - detached-signature placeholder, not a CMS signature.\n",
+    "SIGNED-PAYLOAD-MANIFEST.json": "{\"fixture\":true}\n",
+    "SIGNING-POLICY.md": "Fixture signing policy.\n",
+    "Test-NaguCodexDistributionIntegrity.ps1": "# Fixture only; performs no operations.\n",
+    "THIRD-PARTY-NOTICES.md": "Fixture third-party notices.\n"
+  }
+}

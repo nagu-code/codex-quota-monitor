@@ -1,0 +1,214 @@
+CODEX QUOTA MONITOR 1.5.0 - WINDOWS INSTALLATION
+Publisher: Nagu Corporate Private Limited
+Publisher/security/legal contact: Nikhil K J <kj@nagu.co>
+General contact: <hello@nagu.co>
+Product site: https://codex-tracker.nagu.co/
+
+SYSTEM REQUIREMENTS
+
+- Windows 10 or Windows 11, x64.
+- A current Windows user account that can install a per-user application.
+- Internet access and a browser for the official ChatGPT sign-in flow.
+
+OFFICIAL RELEASE FILES
+
+Choose one distribution:
+
+1. Codex-Quota-Monitor-Setup-1.5.0-x64-Unsigned.exe
+   This installer has no Authenticode publisher signature. Windows can identify its
+   publisher as Unknown publisher. Use it only after verifying its SHA-256 value.
+
+2. Nagu-Codex-Quota-Monitor-1.5.0-Locally-Signed.zip
+   This advanced option contains a locally self-signed installer, the Nagu public
+   certificate, current-user trust scripts, legal notices, SHA256SUMS.txt and the
+   detached SHA256SUMS.p7s signature. Local self-signing is not equivalent to a
+   signature issued by a publicly trusted certificate authority.
+
+Never install a release sent through an unofficial channel. The ZIP must never
+contain a .pfx, .p12, .pvk, .key or other private signing key. Nagu distributes
+only the public .cer certificate; the signing private key must never leave the
+publisher's controlled signing environment.
+
+AUTHENTICITY ANCHORS - CHECK BEFORE INSTALLING
+
+The expected Nagu public certificate values for this release are:
+
+Certificate SHA-256:
+0870FDFAEC243A0B46564F70338AC166B57F6A2C68B7024FE08FBA9F15ED5F7F
+
+Expected signer certificate thumbprint:
+8452BCAFAD093D33D122097AD7D112A42A26526D
+
+The certificate thumbprint and SHA-256 digests of SHA256SUMS.txt and
+SHA256SUMS.p7s must be published independently over HTTPS at https://nagu.co/,
+and should also match the values on the product site and GitHub Release. Stop if
+the independent values are absent or different. A hash or certificate bundled
+inside the same ZIP is not independent proof that the ZIP is authentic.
+
+Calculate the digests of the checksum and detached-signature files before using
+them:
+
+  Get-FileHash -LiteralPath ".\SHA256SUMS.txt" -Algorithm SHA256
+  Get-FileHash -LiteralPath ".\SHA256SUMS.p7s" -Algorithm SHA256
+
+Compare both complete results with the independently published digests. The
+distribution verification script then verifies cryptographically that
+SHA256SUMS.p7s signs the exact SHA256SUMS.txt bytes and that its embedded signer
+uses the expected thumbprint above.
+
+For any downloaded file, calculate SHA-256 in PowerShell 5.1 or later:
+
+  Get-FileHash -LiteralPath ".\FILE-NAME" -Algorithm SHA256
+
+Compare the complete 64-character result with the exact entry in SHA256SUMS.txt
+and the independently published release value. A mismatch means the file must not
+be opened or run.
+
+To check that the standalone installer is genuinely unsigned:
+
+  Get-AuthenticodeSignature -LiteralPath ".\Codex-Quota-Monitor-Setup-1.5.0-x64-Unsigned.exe" | Format-List Status,StatusMessage
+
+The expected Status is NotSigned. Any other status is not the documented release
+state; stop and obtain the official artifact.
+
+OPTION A - UNSIGNED EXE
+
+1. Download the unsigned EXE, SHA256SUMS.txt and SHA256SUMS.p7s from the official
+   release. Compare their independently published values as described above.
+2. Verify the unsigned EXE SHA-256 and confirm its signature Status is NotSigned.
+3. Double-click Codex-Quota-Monitor-Setup-1.5.0-x64-Unsigned.exe.
+4. Windows Defender SmartScreen may show "Windows protected your PC" because the
+   file is unsigned or has insufficient reputation. Confirm the app name, choose
+   "More info", then choose "Run anyway" only if every verification passed and
+   you intended to run this release. A later Windows prompt can say "Unknown
+   publisher"; continue only if the verified filename and hash still match.
+5. If "More info" or "Run anyway" is unavailable, Windows S mode or an organization
+   policy may prohibit the installer. Do not disable security controls or work
+   around an administrator's policy. Ask the administrator to validate and deploy
+   the official artifact.
+6. Complete the installer. Choose an install directory only if you need to change
+   the default. Launch Codex Quota Monitor from the Start menu or desktop shortcut.
+
+SmartScreen reputation is separate from SHA-256 and Authenticode validation. A
+click-through does not prove that a file is safe; it only overrides that warning.
+
+OPTION B - LOCALLY SELF-SIGNED ZIP (ADVANCED)
+
+1. Download and verify the ZIP SHA-256 before extracting it. Extract it to a new
+   folder; do not run files directly from the ZIP preview.
+2. Confirm the bundle contains this installer:
+
+   Codex-Quota-Monitor-Setup-1.5.0-x64-Nagu-Self-Signed.exe
+
+3. Manually verify the public certificate before running any bundled script:
+
+   Get-FileHash -LiteralPath ".\Nagu-Corporate-Code-Signing.cer" -Algorithm SHA256
+   $cert = New-Object System.Security.Cryptography.X509Certificates.X509Certificate2("$PWD\Nagu-Corporate-Code-Signing.cer")
+   $cert | Format-List Subject,Issuer,Thumbprint,NotBefore,NotAfter,HasPrivateKey
+
+   Its SHA-256 and thumbprint must exactly match the authenticity anchors above,
+   HasPrivateKey must be False, and the independent HTTPS values must match.
+4. Verify every listed bundle hash, the detached checksum signature, the public
+   certificate and the installer signer:
+
+   powershell.exe -NoProfile -ExecutionPolicy Bypass -File ".\Test-NaguCodexDistributionIntegrity.ps1" -ReleaseDirectory "$PWD" -Version "1.5.0"
+
+   ExecutionPolicy Bypass applies only to this PowerShell process; it does not
+   change the persistent system policy. Use it only after the manual checks above.
+5. Understand the trust consequence before proceeding. The trust script adds this
+   self-signed public certificate to Cert:\CurrentUser\Root and
+   Cert:\CurrentUser\TrustedPublisher. For this Windows user, Windows may then
+   trust any code or other content whose signature chains to this certificate,
+   not only Codex Quota Monitor. The script does not change LocalMachine trust and
+   does not require administrator access. If it requests elevation, cancel it.
+6. Install trust. The script validates the exact certificate SHA-256 and expected
+   signer thumbprint before any import, rejects private-key material and requires
+   the displayed confirmation phrase:
+
+   powershell.exe -NoProfile -ExecutionPolicy Bypass -File ".\Install-NaguCodexCurrentUserCertificateTrust.ps1" -CertificatePath ".\Nagu-Corporate-Code-Signing.cer"
+
+7. Require a trusted Authenticode result after import:
+
+   powershell.exe -NoProfile -ExecutionPolicy Bypass -File ".\Test-NaguCodexDistributionIntegrity.ps1" -ReleaseDirectory "$PWD" -Version "1.5.0" -RequireTrustedInstaller
+
+8. Double-click the self-signed installer. SmartScreen can still warn because
+   SmartScreen reputation and certificate-chain trust are separate. If it warns,
+   choose "More info" and verify that the publisher is Nagu Corporate Private
+   Limited before "Run anyway". Stop if the publisher is Unknown, different, or
+   the verification script does not pass. Managed policy may remove the override;
+   do not bypass that policy.
+9. Complete the installer and launch Codex Quota Monitor.
+
+REMOVE THE SELF-SIGNED TRUST
+
+Trust is not removed when the app is uninstalled. From the extracted official ZIP,
+run the removal script and type its confirmation phrase:
+
+  powershell.exe -NoProfile -ExecutionPolicy Bypass -File ".\Remove-NaguCodexCurrentUserCertificateTrust.ps1"
+
+The script removes only thumbprint 8452BCAFAD093D33D122097AD7D112A42A26526D
+from this user's Root and TrustedPublisher stores after confirming that the stored
+certificate has the expected SHA-256 and subject. It never accesses LocalMachine.
+Removing trust does not uninstall the application or erase its data. The installed
+program and future Nagu installers may show an untrusted-publisher warning until a
+verified certificate is trusted again.
+
+SIGN IN AND ACCOUNT SWITCHING
+
+1. Open Codex Quota Monitor, choose "Add account", give it a recognizable local
+   label, and choose "Continue to sign in".
+2. Complete the official ChatGPT sign-in in the browser. The browser may reuse an
+   existing ChatGPT session. If the wrong account appears, switch accounts or sign
+   out in that browser, return to Codex Quota Monitor, then use "Retry sign-in".
+   A private/incognito browser session can help only if your browser lets you open
+   the sign-in address there; keep the app's original attempt active.
+3. Only one new browser sign-in runs at a time. Retry/add-account controls unlock
+   when sign-in completes or after about 60 seconds. This is an app retry timer,
+   not an OpenAI-required waiting period, and its expiry does not authenticate an
+   account. An account becomes Active only after identity and Codex limits verify.
+4. If sign-in stalls, wait for Retry or Cancel to become available. Switch to the
+   intended browser account and retry, or cancel and start again. Do not repeatedly
+   create account entries for one incomplete browser flow.
+5. If the wrong account was added, use the app's Remove action for that entry. It
+   removes that monitor entry and its local sign-in data; it does not delete the
+   ChatGPT account. Then switch browser accounts and add the intended account.
+
+AUTHENTICATION TROUBLESHOOTING
+
+- Keep the app open while completing browser sign-in. Return to the app after the
+  browser finishes; the app should restore/focus and verify the account.
+- Check the system date, time and time zone, and make sure HTTPS access is not
+  blocked. A proxy, VPN, firewall or organization policy can interrupt sign-in.
+- If the browser completed but the app stays Awaiting sign-in, use Retry after it
+  unlocks. If verification reports 401 or asks for sign-in, sign in again. For a
+  429/rate-limit response, wait for the service-provided retry window rather than
+  deleting local data or repeatedly retrying.
+- Saved credentials are protected for the current Windows user with Windows DPAPI.
+  Another Windows user or a copied profile cannot normally decrypt them. If the
+  Windows profile or DPAPI keys changed, remove and re-add the affected account.
+- For persistent problems, record the exact on-screen error without copying tokens,
+  cookies, account data or the local account-home directory, then contact
+  hello@nagu.co.
+
+UNINSTALL, REINSTALL AND RESET
+
+1. Close Codex Quota Monitor.
+2. Open Windows Settings > Apps > Installed apps, find "Codex Quota Monitor", open
+   its menu and choose Uninstall. Follow the Windows prompts.
+3. If you used the advanced ZIP, decide separately whether to run the trust-removal
+   script. Uninstalling the app does not remove certificate trust.
+4. For a normal reinstall or upgrade, download the intended release again, repeat
+   all hash/signature checks, and run its installer. Use the same Windows account
+   if you expect that account's DPAPI-protected saved credentials to remain usable.
+5. If support directs you to test with a clean app profile, first close the app and
+   rename (do not delete) the current user's "%APPDATA%\Codex Quota Monitor" folder
+   to a dated backup name. This resets the app's local view on next launch. That
+   backup can contain sensitive encrypted account data: do not share or upload it.
+   Restore it only under the same Windows account. Delete it permanently only when
+   you intentionally accept losing saved accounts, preferences and local history.
+
+LEGAL AND PRODUCT STATUS
+
+Read LICENSE.txt and THIRD-PARTY-NOTICES.md before use or redistribution. This is
+an independent product from Nagu Corporate Private Limited and is not affiliated
+with OpenAI. ChatGPT, Codex and OpenAI names may be trademarks of their owners.

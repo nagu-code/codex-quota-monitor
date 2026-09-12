@@ -1,0 +1,30 @@
+name: Validate release tooling
+
+on:
+  pull_request:
+    paths:
+      - ".github/**"
+      - "scripts/**"
+      - "test/fixtures/**"
+  push:
+    branches: [main]
+    paths:
+      - ".github/**"
+      - "scripts/**"
+      - "test/fixtures/**"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  fixture-validation:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - name: Validate pending manifest and repository policy
+        run: |
+          node scripts/validate-release-manifest.mjs --manifest .github/releases/v1.5.0.json --allow-pending
+          node scripts/check-public-repository.mjs
+      - name: Run non-release fixture tests
+        run: node scripts/test-release-validation.mjs

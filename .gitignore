@@ -1,0 +1,72 @@
+# Codex Quota Monitor public distribution repository
+#
+# This repository is for public documentation and release metadata. Installers
+# and other release payloads belong in GitHub Releases, not normal Git history.
+
+# Release binaries and local staging
+*.exe
+*.msi
+*.msix
+*.appx
+*.zip
+*.7z
+*.rar
+*.tar
+*.tar.gz
+*.tgz
+artifacts/
+release/
+releases/
+staging/
+
+# Proprietary application source and generated output
+app/
+electron/
+renderer/
+src/
+website/
+build/
+dist/
+out/
+coverage/
+.webpack/
+node_modules/
+
+# Credentials, account data, and signing material
+.env
+.env.*
+auth.json
+*.key
+*.pfx
+*.p12
+*.jks
+*.keystore
+*.pem
+*.cer
+*.crt
+*.der
+*service-account*.json
+*firebase-admin*.json
+account-data/
+account-homes/
+credential-vault/
+codex-home/
+
+# Local Firebase and tool state
+.firebase/
+.cache/
+.tmp/
+tmp/
+temp/
+*.log
+
+# Editor and operating-system files
+.idea/
+.vscode/
+*.swp
+*.swo
+*.tmp
+*.bak
+.DS_Store
+Thumbs.db
+Desktop.ini

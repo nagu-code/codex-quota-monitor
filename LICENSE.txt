@@ -1,0 +1,169 @@
+Nagu Codex Quota Monitor Freeware License v1.0
+
+Effective date: 12 September 2026
+
+Copyright (c) 2026 Nagu Corporate Private Limited. All rights reserved.
+
+This license is an agreement between Nagu Corporate Private Limited
+("Nagu", "Licensor", "we" or "us") and the individual or legal entity
+that downloads, installs, uses or redistributes the Software ("you"). By
+downloading, installing, using or redistributing the Software, you accept
+this license. If you do not accept it, do not use or redistribute the
+Software.
+
+1. SOFTWARE AND OWNERSHIP
+
+"Software" means the official, compiled Nagu Codex Quota Monitor binary
+release made available by Nagu, including its installer or ZIP package and
+the documentation and Nagu-owned resources supplied with that release.
+
+The Software is licensed, not sold. Nagu and its licensors retain all right,
+title and interest in the Software, including all copyrights, trade secrets
+and other intellectual-property rights. The source code is proprietary and
+is not licensed under this license. No rights are granted except those
+expressly stated here.
+
+2. FREE BINARY-USE LICENSE
+
+Subject to this license, Nagu grants you a non-exclusive, worldwide,
+royalty-free, revocable, non-transferable and non-sublicensable license to
+install and run official, unmodified Software binaries:
+
+  a. for personal use;
+  b. within a workplace or organization; and
+  c. in support of internal business, professional or other commercial
+     activities.
+
+No license fee is charged for these permitted uses. Commercial use of the
+Software within your own activities does not permit you to sell, license or
+commercially distribute the Software itself.
+
+3. LIMITED REDISTRIBUTION
+
+You may redistribute an official release only if all of the following are
+true:
+
+  a. every binary is an exact, unmodified copy obtained from an official
+     Nagu release channel;
+  b. the applicable installer or ZIP package, digital signatures and file
+     names are not altered;
+  c. this LICENSE.txt, THIRD-PARTY-NOTICES.md and all other legal notices
+     supplied with the release remain intact and accompany it;
+  d. you do not charge for the Software or for access to it;
+  e. you do not state or imply that you created, own, sponsor or are endorsed
+     by the Software or Nagu; and
+  f. you comply with applicable law.
+
+This permission does not authorize redistribution of source code, modified
+binaries, repackaged installers, derivative works or only part of a release
+in a manner that removes required notices or verification material.
+Redistribution is not a transfer or sublicense: each recipient receives any
+permission to use the Software directly from Nagu under this license.
+
+4. RESTRICTIONS
+
+Except to the extent that a restriction is prohibited by applicable law,
+you must not:
+
+  a. sell, resell, rent, lease, sublicense or otherwise charge consideration
+     specifically for the Software or the right to obtain or use it;
+  b. modify, adapt, translate or create derivative works of the Software for
+     redistribution;
+  c. redistribute a modified binary or a package that could reasonably be
+     mistaken for an official Nagu release;
+  d. reverse engineer, decompile or disassemble the Software;
+  e. remove or alter copyright, trademark, attribution, license, signature
+     or other proprietary notices; or
+  f. use Nagu's names, logos or marks except as reasonably necessary to
+     identify an official, unmodified copy.
+
+Nothing in this license limits a right that applicable law does not allow
+the parties to exclude or restrict.
+
+5. THIRD-PARTY COMPONENTS
+
+The Software includes or is distributed with third-party components. Those
+components are governed by their own license terms and notices, including
+the notices in THIRD-PARTY-NOTICES.md and the license texts supplied with
+the release. To the extent a third-party license grants rights that differ
+from this license, that third-party license controls for the relevant
+component. You must preserve all third-party notices when redistributing the
+Software. This license does not reduce any rights granted by a third-party
+license.
+
+6. UPDATES, SERVICES AND SUPPORT
+
+Nagu may provide, change or discontinue versions, updates, services or
+support at its discretion. Unless Nagu agrees otherwise in writing, this
+license does not require Nagu to provide maintenance, support, updates or
+continued availability. An update may be subject to this license or to
+replacement terms supplied with that update.
+
+7. DISCLAIMER OF WARRANTIES
+
+TO THE MAXIMUM EXTENT PERMITTED BY APPLICABLE LAW, THE SOFTWARE IS PROVIDED
+"AS IS" AND "AS AVAILABLE", WITH ALL FAULTS AND WITHOUT WARRANTIES,
+CONDITIONS OR REPRESENTATIONS OF ANY KIND, WHETHER EXPRESS, IMPLIED,
+STATUTORY OR OTHERWISE. NAGU DISCLAIMS, WITHOUT LIMITATION, WARRANTIES OF
+MERCHANTABILITY, SATISFACTORY QUALITY, FITNESS FOR A PARTICULAR PURPOSE,
+TITLE, NON-INFRINGEMENT, ACCURACY, SECURITY, RELIABILITY AND UNINTERRUPTED OR
+ERROR-FREE OPERATION. YOU ARE RESPONSIBLE FOR DETERMINING WHETHER THE
+SOFTWARE IS SUITABLE FOR YOUR USE AND FOR MAINTAINING APPROPRIATE BACKUPS AND
+SECURITY CONTROLS.
+
+Some jurisdictions do not permit certain warranty exclusions. Any warranty
+that cannot lawfully be excluded is limited only to the minimum scope and
+duration required by law.
+
+8. LIMITATION OF LIABILITY
+
+TO THE MAXIMUM EXTENT PERMITTED BY APPLICABLE LAW, NAGU, ITS AFFILIATES,
+OFFICERS, EMPLOYEES, AGENTS AND LICENSORS WILL NOT BE LIABLE FOR ANY
+INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, PUNITIVE OR CONSEQUENTIAL LOSS OR
+DAMAGE, OR FOR LOSS OF DATA, PROFITS, REVENUE, BUSINESS, GOODWILL OR BUSINESS
+OPPORTUNITY, ARISING FROM OR RELATED TO THE SOFTWARE OR THIS LICENSE, EVEN IF
+ADVISED THAT SUCH LOSS OR DAMAGE WAS POSSIBLE.
+
+TO THE MAXIMUM EXTENT PERMITTED BY APPLICABLE LAW, NAGU'S TOTAL AGGREGATE
+LIABILITY ARISING FROM OR RELATED TO THE SOFTWARE OR THIS LICENSE WILL NOT
+EXCEED THE AMOUNT, IF ANY, THAT YOU PAID DIRECTLY TO NAGU FOR THE SOFTWARE.
+
+Nothing in this license excludes or limits liability that cannot lawfully be
+excluded or limited, including liability for fraud or wilful misconduct
+where applicable law so provides.
+
+9. TERMINATION
+
+This license terminates automatically if you materially breach it. On
+termination, you must stop using and redistributing the Software and delete
+or destroy copies in your possession or control, except for copies that
+applicable law requires you to retain. Sections concerning ownership,
+third-party components, disclaimers, liability, governing law and provisions
+that by their nature should survive will survive termination. Termination of
+this license does not terminate or narrow any license that a third party
+grants directly for a third-party component.
+
+10. GOVERNING LAW AND JURISDICTION
+
+This license is governed by the laws of India, without regard to
+conflict-of-laws principles. Subject to any mandatory law or non-waivable
+right to another forum, the courts of competent jurisdiction in Bengaluru,
+Karnataka, India will have exclusive jurisdiction over disputes arising from
+or relating to this license or the Software. If you are a consumer, nothing
+in this section deprives you of a protection or forum that applicable law
+does not permit you to waive.
+
+11. GENERAL
+
+If a provision of this license is held unenforceable, it will be enforced to
+the maximum extent permitted and the remaining provisions will remain in
+effect. A failure to enforce a provision is not a waiver. This license and
+the third-party terms applicable to their respective components constitute
+the entire license agreement for the Software and supersede prior statements
+about the same subject. A change or waiver by Nagu must be in writing and
+authorized by Nagu.
+
+Questions about this license may be sent to:
+
+Nagu Corporate Private Limited
+Email: kj@nagu.co

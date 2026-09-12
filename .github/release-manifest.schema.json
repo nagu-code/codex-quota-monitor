@@ -1,0 +1,197 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/nagu-code/codex-quota-monitor/.github/release-manifest.schema.json",
+  "title": "Codex Quota Monitor public release manifest",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "kind",
+    "product",
+    "version",
+    "status",
+    "hashAlgorithm",
+    "source",
+    "certification",
+    "signing",
+    "artifacts"
+  ],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "kind": { "const": "nagu-codex-quota-monitor-public-release" },
+    "product": { "const": "Codex Quota Monitor" },
+    "version": { "const": "1.5.0" },
+    "status": {
+      "enum": ["pending-phase-8", "certified-phase-8", "fixture"]
+    },
+    "hashAlgorithm": { "const": "SHA-256" },
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["privateRcTag", "privateCommit", "publicCommit"],
+      "properties": {
+        "privateRcTag": {
+          "type": ["string", "null"],
+          "pattern": "^v1\\.5\\.0-rc\\.[1-9][0-9]*$"
+        },
+        "privateCommit": {
+          "type": ["string", "null"],
+          "pattern": "^[a-f0-9]{40}$"
+        },
+        "publicCommit": {
+          "type": ["string", "null"],
+          "pattern": "^[a-f0-9]{40}$"
+        }
+      }
+    },
+    "certification": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["phase8EvidenceRef"],
+      "properties": {
+        "phase8EvidenceRef": { "type": ["string", "null"], "minLength": 1 }
+      }
+    },
+    "signing": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["signatureFormat", "signerThumbprint", "sha256SumsDigest"],
+      "properties": {
+        "signatureFormat": { "const": "detached-cms-pkcs7" },
+        "signerThumbprint": {
+          "const": "8452BCAFAD093D33D122097AD7D112A42A26526D"
+        },
+        "sha256SumsDigest": {
+          "type": ["string", "null"],
+          "pattern": "^[a-f0-9]{64}$"
+        }
+      }
+    },
+    "artifacts": {
+      "type": "array",
+      "minItems": 6,
+      "maxItems": 6,
+      "prefixItems": [
+        { "$ref": "#/$defs/unsignedInstaller" },
+        { "$ref": "#/$defs/signedZip" },
+        { "$ref": "#/$defs/installation" },
+        { "$ref": "#/$defs/license" },
+        { "$ref": "#/$defs/checksums" },
+        { "$ref": "#/$defs/checksumSignature" }
+      ],
+      "items": false
+    }
+  },
+  "allOf": [
+    {
+      "if": { "properties": { "status": { "const": "certified-phase-8" } } },
+      "then": {
+        "properties": {
+          "source": {
+            "properties": {
+              "privateRcTag": { "type": "string" },
+              "privateCommit": { "type": "string" },
+              "publicCommit": { "type": "string" }
+            }
+          },
+          "certification": {
+            "properties": { "phase8EvidenceRef": { "type": "string" } }
+          },
+          "signing": {
+            "properties": { "sha256SumsDigest": { "type": "string" } }
+          },
+          "artifacts": {
+            "contains": {
+              "properties": {
+                "sizeBytes": { "type": "integer", "minimum": 1 },
+                "sha256": { "type": "string" }
+              },
+              "required": ["sizeBytes", "sha256"]
+            },
+            "minContains": 6,
+            "maxContains": 6
+          }
+        }
+      }
+    }
+  ],
+  "$defs": {
+    "artifact": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "sizeBytes", "sha256", "checksumListed"],
+      "properties": {
+        "name": { "type": "string" },
+        "sizeBytes": { "type": ["integer", "null"], "minimum": 1 },
+        "sha256": { "type": ["string", "null"], "pattern": "^[a-f0-9]{64}$" },
+        "checksumListed": { "type": "boolean" }
+      }
+    },
+    "unsignedInstaller": {
+      "allOf": [
+        { "$ref": "#/$defs/artifact" },
+        {
+          "properties": {
+            "name": { "const": "Codex-Quota-Monitor-Setup-1.5.0-x64-Unsigned.exe" },
+            "checksumListed": { "const": true }
+          }
+        }
+      ]
+    },
+    "signedZip": {
+      "allOf": [
+        { "$ref": "#/$defs/artifact" },
+        {
+          "properties": {
+            "name": { "const": "Nagu-Codex-Quota-Monitor-1.5.0-Locally-Signed.zip" },
+            "checksumListed": { "const": true }
+          }
+        }
+      ]
+    },
+    "installation": {
+      "allOf": [
+        { "$ref": "#/$defs/artifact" },
+        {
+          "properties": {
+            "name": { "const": "INSTALLATION.txt" },
+            "checksumListed": { "const": true }
+          }
+        }
+      ]
+    },
+    "license": {
+      "allOf": [
+        { "$ref": "#/$defs/artifact" },
+        {
+          "properties": {
+            "name": { "const": "LICENSE.txt" },
+            "checksumListed": { "const": true }
+          }
+        }
+      ]
+    },
+    "checksums": {
+      "allOf": [
+        { "$ref": "#/$defs/artifact" },
+        {
+          "properties": {
+            "name": { "const": "SHA256SUMS.txt" },
+            "checksumListed": { "const": false }
+          }
+        }
+      ]
+    },
+    "checksumSignature": {
+      "allOf": [
+        { "$ref": "#/$defs/artifact" },
+        {
+          "properties": {
+            "name": { "const": "SHA256SUMS.p7s" },
+            "checksumListed": { "const": false }
+          }
+        }
+      ]
+    }
+  }
+}
