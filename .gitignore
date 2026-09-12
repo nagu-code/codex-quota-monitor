@@ -14,10 +14,10 @@
 *.tar
 *.tar.gz
 *.tgz
-artifacts/
-release/
-releases/
-staging/
+/artifacts/
+/release/
+/releases/
+/staging/
 
 # Proprietary application source and generated output
 app/

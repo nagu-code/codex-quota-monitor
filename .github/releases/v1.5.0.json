@@ -1,0 +1,59 @@
+{
+  "schemaVersion": 1,
+  "kind": "nagu-codex-quota-monitor-public-release",
+  "product": "Codex Quota Monitor",
+  "version": "1.5.0",
+  "status": "pending-phase-8",
+  "hashAlgorithm": "SHA-256",
+  "source": {
+    "privateRcTag": null,
+    "privateCommit": null,
+    "publicCommit": null
+  },
+  "certification": {
+    "phase8EvidenceRef": null
+  },
+  "signing": {
+    "signatureFormat": "detached-cms-pkcs7",
+    "signerThumbprint": "8452BCAFAD093D33D122097AD7D112A42A26526D",
+    "sha256SumsDigest": null
+  },
+  "artifacts": [
+    {
+      "name": "Codex-Quota-Monitor-Setup-1.5.0-x64-Unsigned.exe",
+      "sizeBytes": null,
+      "sha256": null,
+      "checksumListed": true
+    },
+    {
+      "name": "Nagu-Codex-Quota-Monitor-1.5.0-Locally-Signed.zip",
+      "sizeBytes": null,
+      "sha256": null,
+      "checksumListed": true
+    },
+    {
+      "name": "INSTALLATION.txt",
+      "sizeBytes": null,
+      "sha256": null,
+      "checksumListed": true
+    },
+    {
+      "name": "LICENSE.txt",
+      "sizeBytes": null,
+      "sha256": null,
+      "checksumListed": true
+    },
+    {
+      "name": "SHA256SUMS.txt",
+      "sizeBytes": null,
+      "sha256": null,
+      "checksumListed": false
+    },
+    {
+      "name": "SHA256SUMS.p7s",
+      "sizeBytes": null,
+      "sha256": null,
+      "checksumListed": false
+    }
+  ]
+}
