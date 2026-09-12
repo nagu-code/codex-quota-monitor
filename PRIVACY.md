@@ -53,7 +53,7 @@ delete dashboard data so that settings can survive a reinstall.
 To remove all remaining local app data, quit Codex Quota Monitor and delete:
 
 ```text
-%APPDATA%\codex-quota-monitor
+%APPDATA%\Codex Quota Monitor
 ```
 
 Items moved to the Recycle Bin must also be emptied if permanent deletion is

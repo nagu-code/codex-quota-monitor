@@ -1,5 +1,5 @@
 import { createHash } from "node:crypto";
-import { readFile, readdir, stat } from "node:fs/promises";
+import { lstat, readFile, readdir, stat } from "node:fs/promises";
 import path from "node:path";
 import { inflateRawSync } from "node:zlib";
 import { pathToFileURL } from "node:url";
@@ -11,8 +11,14 @@ import {
 } from "./release-contract.mjs";
 import { validateManifest } from "./validate-release-manifest.mjs";
 
-const TOP_LEVEL_CHECKSUMS = ARTIFACTS.filter(([, listed]) => listed).map(([name]) => name).sort();
-const ZIP_CHECKSUMS = SIGNED_ZIP_ENTRIES.filter((name) => !["SHA256SUMS.txt", "SHA256SUMS.p7s"].includes(name)).sort();
+const compareNames = (left, right) => left.localeCompare(right, "en");
+const TOP_LEVEL_CHECKSUMS = ARTIFACTS
+  .filter(([, listed]) => listed)
+  .map(([name]) => name)
+  .sort(compareNames);
+const ZIP_CHECKSUMS = SIGNED_ZIP_ENTRIES
+  .filter((name) => !["SHA256SUMS.txt", "SHA256SUMS.p7s"].includes(name))
+  .sort(compareNames);
 
 function fail(message) {
   throw new Error(`release assets: ${message}`);
@@ -38,7 +44,14 @@ function assertSafePath(name, label) {
 }
 
 function parseChecksums(contents, expectedNames, label) {
-  const lines = contents.toString("utf8").split(/\r?\n/u).filter(Boolean);
+  const text = contents.toString("utf8");
+  if (!text.endsWith("\n") || text.includes("\r")) {
+    fail(`${label} must use LF-terminated lines`);
+  }
+  const lines = text.slice(0, -1).split("\n");
+  if (lines.length === 0 || lines.some((line) => !line)) {
+    fail(`${label} must contain non-empty canonical lines`);
+  }
   const entries = new Map();
   for (const line of lines) {
     const match = /^([a-f0-9]{64}) \*([^\r\n]+)$/u.exec(line);
@@ -48,6 +61,10 @@ function parseChecksums(contents, expectedNames, label) {
     entries.set(match[2], match[1]);
   }
   sameInventory(entries.keys(), expectedNames, label);
+  const actualNames = [...entries.keys()];
+  if (actualNames.some((name, index) => name !== expectedNames[index])) {
+    fail(`${label} entries must be sorted by filename`);
+  }
   return entries;
 }
 
@@ -95,8 +112,21 @@ function inspectText(buffer, label) {
   if (PRIVATE_CONTENT.test(buffer.toString("utf8"))) fail(`${label} contains private credential/key material`);
 }
 
-export async function validateReleaseAssets({ manifestPath, artifactsPath, publish = false }) {
+async function readCanonicalFile(canonicalRoot, name) {
+  const filePath = path.join(canonicalRoot, name);
+  const info = await lstat(filePath);
+  if (!info.isFile() || info.isSymbolicLink()) fail(`canonical ${name} is not a regular file`);
+  return readFile(filePath);
+}
+
+export async function validateReleaseAssets({
+  manifestPath,
+  artifactsPath,
+  canonicalRoot = null,
+  publish = false,
+}) {
   const manifest = validateManifest(JSON.parse(await readFile(manifestPath, "utf8")), { publish });
+  if (publish && !canonicalRoot) fail("publication requires the reviewed canonical repository root");
   const names = await readdir(artifactsPath);
   sameInventory(names, ARTIFACTS.map(([name]) => name), "top-level artifact inventory");
   for (const name of names) assertSafePath(name, "top-level artifact inventory");
@@ -124,6 +154,14 @@ export async function validateReleaseAssets({ manifestPath, artifactsPath, publi
   inspectText(buffers.get("INSTALLATION.txt"), "INSTALLATION.txt");
   inspectText(buffers.get("LICENSE.txt"), "LICENSE.txt");
   inspectText(buffers.get("SHA256SUMS.txt"), "SHA256SUMS.txt");
+  if (canonicalRoot) {
+    for (const name of ["INSTALLATION.txt", "LICENSE.txt"]) {
+      const canonical = await readCanonicalFile(canonicalRoot, name);
+      if (!buffers.get(name).equals(canonical)) {
+        fail(`${name} differs from the reviewed canonical repository copy`);
+      }
+    }
+  }
 
   const zip = readZip(buffers.get("Nagu-Codex-Quota-Monitor-1.5.0-Locally-Signed.zip"));
   sameInventory(zip.keys(), SIGNED_ZIP_ENTRIES, "signed ZIP inventory");
@@ -138,18 +176,22 @@ export async function validateReleaseAssets({ manifestPath, artifactsPath, publi
     if (!/\.(?:exe|cer|p7s)$/iu.test(name)) inspectText(contents, `signed ZIP ${name}`);
   }
 
-  console.log(`Validated exact v${manifest.version} release inventory, sizes, SHA-256 hashes, and detached-signature presence.`);
+  const canonicalMessage = canonicalRoot ? ", canonical documents" : "";
+  console.log(`Validated exact v${manifest.version} release inventory${canonicalMessage}, sizes, SHA-256 hashes, and detached-signature presence.`);
+  return { manifest, buffers, zip };
 }
 
 function parseArgs(argv) {
-  const options = { publish: false, manifestPath: null, artifactsPath: null };
+  const options = { publish: false, manifestPath: null, artifactsPath: null, canonicalRoot: null };
   for (let index = 0; index < argv.length; index += 1) {
     if (argv[index] === "--publish") options.publish = true;
     else if (argv[index] === "--manifest") options.manifestPath = argv[++index];
     else if (argv[index] === "--artifacts") options.artifactsPath = argv[++index];
+    else if (argv[index] === "--canonical-root") options.canonicalRoot = argv[++index];
     else fail(`unknown argument: ${argv[index]}`);
   }
   if (!options.manifestPath || !options.artifactsPath) fail("--manifest and --artifacts are required");
+  if (options.publish && !options.canonicalRoot) fail("--canonical-root is required with --publish");
   return options;
 }
 

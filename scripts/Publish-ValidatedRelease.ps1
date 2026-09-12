@@ -11,9 +11,11 @@ $ErrorActionPreference = "Stop"
 
 $repository = "nagu-code/codex-quota-monitor"
 $releaseTag = "v1.5.0"
+$releaseTitle = "Codex Quota Monitor v1.5.0"
+$evidenceArtifactName = "publication-evidence-v1.5.0-attempt-$WorkflowRunAttempt"
 $rulesetId = 23030280
 $expectedConfirmation = "PUBLISH v1.5.0 FROM VALIDATED RUN $WorkflowRunId ATTEMPT $WorkflowRunAttempt"
-$artifactDirectory = $null
+$temporaryDirectory = $null
 $locationPushed = $false
 
 function Invoke-GhText {
@@ -54,10 +56,25 @@ function Get-DraftRelease {
     throw "Exactly one authenticated $releaseTag draft release is required."
   }
   $release = $matches[0]
-  if (-not $release.draft) {
-    throw "The authenticated $releaseTag release is no longer a draft."
+  if (-not $release.draft -or $release.prerelease -or $release.name -cne $releaseTitle) {
+    throw "The authenticated $releaseTag release metadata is not the exact non-prerelease draft contract."
   }
   return $release
+}
+
+function Assert-CurrentDefaultBranch {
+  param([Parameter(Mandatory = $true)][string]$ExpectedCommit)
+
+  $repositoryState = Invoke-GhJson -ArgumentList @("api", "repos/$repository")
+  $defaultBranch = [string]$repositoryState.default_branch
+  if ([string]::IsNullOrWhiteSpace($defaultBranch)) {
+    throw "The authenticated repository has no default branch."
+  }
+  $branch = Invoke-GhJson -ArgumentList @("api", "repos/$repository/branches/$defaultBranch")
+  if (-not $branch.protected -or $branch.commit.sha -cne $ExpectedCommit) {
+    throw "The reviewed commit is no longer the current protected default-branch tip."
+  }
+  return $defaultBranch
 }
 
 function Assert-ExactTagAbsent {
@@ -101,12 +118,15 @@ try {
   if ($LASTEXITCODE -ne 0 -or -not [string]::IsNullOrEmpty($worktreeStatusText)) {
     throw "Publication requires a clean checkout of the reviewed public commit."
   }
+  $defaultBranch = Assert-CurrentDefaultBranch -ExpectedCommit $ReviewedCommit
 
   $run = Invoke-GhJson -ArgumentList @("api", "repos/$repository/actions/runs/$WorkflowRunId")
   if ($run.status -cne "completed" -or $run.conclusion -cne "success" -or
       $run.event -cne "workflow_dispatch" -or $run.head_sha -cne $ReviewedCommit -or
       [int]$run.run_attempt -ne $WorkflowRunAttempt -or
-      $run.path -cne ".github/workflows/publish-v1.5.0.yml") {
+      $run.path -cne ".github/workflows/publish-v1.5.0.yml" -or
+      $run.head_branch -cne $defaultBranch -or
+      $run.head_repository.full_name -cne $repository) {
     throw "The supplied workflow run is not the successful exact-commit publication validation."
   }
 
@@ -117,7 +137,9 @@ try {
   })
   if ($ruleset.target -cne "tag" -or $ruleset.enforcement -cne "active" -or
       $ruleset.current_user_can_bypass -cne "always" -or $adminBypass.Count -ne 1 -or
+      @($ruleset.conditions.ref_name.include).Count -ne 1 -or
       "refs/tags/v*" -notin @($ruleset.conditions.ref_name.include) -or
+      @($ruleset.conditions.ref_name.exclude).Count -ne 0 -or
       @("creation", "update", "deletion", "non_fast_forward").Where({ $_ -notin $ruleTypes }).Count -ne 0) {
     throw "The authenticated account cannot use the required protected version-tag gate."
   }
@@ -137,18 +159,55 @@ try {
   $releaseId = [long]$release.id
   $assetFingerprint = Get-AssetFingerprint -Release $release
 
-  $artifactDirectory = [IO.Path]::Combine(
+  $temporaryDirectory = [IO.Path]::Combine(
     [IO.Path]::GetTempPath(),
-    "cqm-release-$([Guid]::NewGuid().ToString('N'))"
+    "cqm-publication-$([Guid]::NewGuid().ToString('N'))"
   )
-  New-Item -ItemType Directory -Path $artifactDirectory -ErrorAction Stop | Out-Null
+  $artifactDirectory = Join-Path $temporaryDirectory "release-assets"
+  $evidenceDirectory = Join-Path $temporaryDirectory "publication-evidence"
+  New-Item -ItemType Directory -Path $artifactDirectory -Force -ErrorAction Stop | Out-Null
+  New-Item -ItemType Directory -Path $evidenceDirectory -Force -ErrorAction Stop | Out-Null
   & gh release download $releaseTag --repo $repository --dir $artifactDirectory
   if ($LASTEXITCODE -ne 0) { throw "Authenticated draft asset download failed." }
-  node scripts/validate-release-assets.mjs `
+
+  $runArtifacts = Invoke-GhJson -ArgumentList @(
+    "api", "repos/$repository/actions/runs/$WorkflowRunId/artifacts?per_page=100"
+  )
+  $evidenceMatches = @($runArtifacts.artifacts | Where-Object { $_.name -ceq $evidenceArtifactName })
+  if ($evidenceMatches.Count -ne 1 -or $evidenceMatches[0].expired -cne $false -or
+      [long]$evidenceMatches[0].id -lt 1 -or [long]$evidenceMatches[0].size_in_bytes -lt 1) {
+    throw "Exactly one unexpired immutable publication evidence artifact is required from the validated run."
+  }
+  & gh run download $WorkflowRunId `
+    --repo $repository `
+    --name $evidenceArtifactName `
+    --dir $evidenceDirectory
+  if ($LASTEXITCODE -ne 0) { throw "Validated publication evidence download failed." }
+  $expectedEvidenceFiles = @(
+    "phase8-certification.json",
+    "phase9-audit-one.json",
+    "phase9-audit-two.json",
+    "publication-binding.json"
+  ) | Sort-Object
+  $actualEvidenceFiles = @(
+    Get-ChildItem -LiteralPath $evidenceDirectory -Force | ForEach-Object {
+      if (-not $_.PSIsContainer) { $_.Name } else { "directory:$($_.Name)" }
+    }
+  ) | Sort-Object
+  if ([string]::Join("`n", $actualEvidenceFiles) -cne [string]::Join("`n", $expectedEvidenceFiles)) {
+    throw "The validated run publication evidence inventory differs."
+  }
+  node scripts/validate-publication-evidence.mjs `
     --manifest .github/releases/v1.5.0.json `
     --artifacts $artifactDirectory `
-    --publish
-  if ($LASTEXITCODE -ne 0) { throw "Release asset validation failed." }
+    --canonical-root . `
+    --phase8-receipt (Join-Path $evidenceDirectory "phase8-certification.json") `
+    --audit-one (Join-Path $evidenceDirectory "phase9-audit-one.json") `
+    --audit-two (Join-Path $evidenceDirectory "phase9-audit-two.json") `
+    --reviewed-commit $ReviewedCommit `
+    --draft-release-id $releaseId `
+    --binding (Join-Path $evidenceDirectory "publication-binding.json")
+  if ($LASTEXITCODE -ne 0) { throw "Publication evidence or release asset validation failed." }
   & ./scripts/Test-DetachedChecksumSignature.ps1 `
     -InputPath (Join-Path $artifactDirectory "SHA256SUMS.txt") `
     -SignaturePath (Join-Path $artifactDirectory "SHA256SUMS.p7s") `
@@ -164,14 +223,22 @@ try {
     --workflow-commit "$ReviewedCommit" `
     --checkout-commit "$checkoutCommit"
   if ($LASTEXITCODE -ne 0) { throw "Final authenticated draft target validation failed." }
+  $null = Assert-CurrentDefaultBranch -ExpectedCommit $ReviewedCommit
   Assert-ExactTagAbsent
 
   $notes = Get-Content -Raw -LiteralPath ".github/release-notes/v1.5.0.md"
-  $payload = @{ draft = $false; body = $notes; make_latest = "false" } | ConvertTo-Json
+  $payload = @{
+    name = $releaseTitle
+    draft = $false
+    prerelease = $false
+    body = $notes
+    make_latest = "false"
+  } | ConvertTo-Json
   $published = Invoke-GhJson `
     -ArgumentList @("api", "--method", "PATCH", "repos/$repository/releases/$releaseId", "--input", "-") `
     -InputJson $payload
-  if ($published.draft -or $published.tag_name -cne $releaseTag -or
+  if ($published.draft -or $published.prerelease -or
+      $published.name -cne $releaseTitle -or $published.tag_name -cne $releaseTag -or
       $published.target_commitish -cne $ReviewedCommit) {
     throw "Publication returned an unexpected release; invoke the private release-withdrawal runbook."
   }
@@ -184,11 +251,11 @@ try {
   Write-Host "Published $releaseTag from validated workflow run $WorkflowRunId attempt $WorkflowRunAttempt at $ReviewedCommit."
 } finally {
   if ($locationPushed) { Pop-Location }
-  if ($null -ne $artifactDirectory -and (Test-Path -LiteralPath $artifactDirectory)) {
-    $fullArtifactPath = [IO.Path]::GetFullPath($artifactDirectory)
+  if ($null -ne $temporaryDirectory -and (Test-Path -LiteralPath $temporaryDirectory)) {
+    $fullArtifactPath = [IO.Path]::GetFullPath($temporaryDirectory)
     $temporaryParent = [IO.Path]::GetFullPath([IO.Path]::GetTempPath()).TrimEnd("\", "/")
     $actualParent = (Split-Path -Parent $fullArtifactPath).TrimEnd("\", "/")
-    $safeName = (Split-Path -Leaf $fullArtifactPath) -match '^cqm-release-[a-f0-9]{32}$'
+    $safeName = (Split-Path -Leaf $fullArtifactPath) -match '^cqm-publication-[a-f0-9]{32}$'
     if ($actualParent -ieq $temporaryParent -and $safeName) {
       Remove-Item -LiteralPath $fullArtifactPath -Recurse -Force
     } else {

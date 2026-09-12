@@ -17,7 +17,7 @@
     "artifacts"
   ],
   "properties": {
-    "schemaVersion": { "const": 2 },
+    "schemaVersion": { "const": 3 },
     "kind": { "const": "nagu-codex-quota-monitor-public-release" },
     "product": { "const": "Codex Quota Monitor" },
     "version": { "const": "1.5.0" },
@@ -43,9 +43,12 @@
     "certification": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["phase8EvidenceRef"],
+      "required": ["phase8PublicationReceiptSha256"],
       "properties": {
-        "phase8EvidenceRef": { "type": ["string", "null"], "minLength": 1 }
+        "phase8PublicationReceiptSha256": {
+          "type": ["string", "null"],
+          "pattern": "^[a-f0-9]{64}$"
+        }
       }
     },
     "signing": {
@@ -90,7 +93,7 @@
             }
           },
           "certification": {
-            "properties": { "phase8EvidenceRef": { "type": "string" } }
+            "properties": { "phase8PublicationReceiptSha256": { "type": "string" } }
           },
           "signing": {
             "properties": { "sha256SumsDigest": { "type": "string" } }

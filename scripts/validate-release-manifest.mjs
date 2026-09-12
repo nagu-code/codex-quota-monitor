@@ -55,11 +55,12 @@ export function validateManifest(manifest, { publish = false } = {}) {
   nullableMatch(manifest.source.privateRcTag, PRIVATE_RC_TAG, "source.privateRcTag");
   nullableMatch(manifest.source.privateCommit, COMMIT_SHA, "source.privateCommit");
 
-  exactKeys(manifest.certification, ["phase8EvidenceRef"], "certification");
-  if (manifest.certification.phase8EvidenceRef !== null &&
-      (typeof manifest.certification.phase8EvidenceRef !== "string" || !manifest.certification.phase8EvidenceRef.trim())) {
-    fail("certification.phase8EvidenceRef is invalid");
-  }
+  exactKeys(manifest.certification, ["phase8PublicationReceiptSha256"], "certification");
+  nullableMatch(
+    manifest.certification.phase8PublicationReceiptSha256,
+    HASH,
+    "certification.phase8PublicationReceiptSha256",
+  );
 
   exactKeys(manifest.signing, ["signatureFormat", "signerThumbprint", "sha256SumsDigest"], "signing");
   if (manifest.signing.signatureFormat !== "detached-cms-pkcs7") fail("signatureFormat is invalid");
@@ -85,7 +86,9 @@ export function validateManifest(manifest, { publish = false } = {}) {
     if (manifest.status !== "certified-phase-8") fail("publication requires certified-phase-8 status");
     if (!PRIVATE_RC_TAG.test(manifest.source.privateRcTag || "")) fail("certified private RC tag is required");
     if (!COMMIT_SHA.test(manifest.source.privateCommit || "")) fail("certified private commit is required");
-    if (!manifest.certification.phase8EvidenceRef) fail("Phase 8 evidence reference is required");
+    if (!HASH.test(manifest.certification.phase8PublicationReceiptSha256 || "")) {
+      fail("Phase 8 publication receipt SHA-256 is required");
+    }
     if (!HASH.test(manifest.signing.sha256SumsDigest || "")) fail("SHA256SUMS digest is required");
     for (const artifact of manifest.artifacts) {
       if (!Number.isSafeInteger(artifact.sizeBytes) || artifact.sizeBytes < 1 || !HASH.test(artifact.sha256 || "")) {

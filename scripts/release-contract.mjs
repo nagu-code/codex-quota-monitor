@@ -1,6 +1,6 @@
 export const VERSION = "1.5.0";
 export const PRODUCT = "Codex Quota Monitor";
-export const RELEASE_MANIFEST_SCHEMA_VERSION = 2;
+export const RELEASE_MANIFEST_SCHEMA_VERSION = 3;
 export const RELEASE_MANIFEST_KIND = "nagu-codex-quota-monitor-public-release";
 export const RELEASE_MANIFEST_STATUSES = Object.freeze([
   "pending-phase-8",
@@ -23,8 +23,8 @@ export const ARTIFACTS = Object.freeze([
 export const SIGNED_ZIP_ENTRIES = Object.freeze([
   "CODEX-LICENSE.txt",
   "Codex-Quota-Monitor-Setup-1.5.0-x64-Nagu-Self-Signed.exe",
-  "Install-NaguCodexCurrentUserCertificateTrust.ps1",
   "INSTALLATION.txt",
+  "Install-NaguCodexCurrentUserCertificateTrust.ps1",
   "LICENSE.txt",
   "Nagu-Corporate-Code-Signing.cer",
   "PRIVACY.md",
@@ -36,6 +36,42 @@ export const SIGNED_ZIP_ENTRIES = Object.freeze([
   "SIGNING-POLICY.md",
   "Test-NaguCodexDistributionIntegrity.ps1",
   "THIRD-PARTY-NOTICES.md",
+]);
+
+// ZIP central-directory order is intentionally non-contractual. ZIP readers do
+// not attach meaning to it, so publication validates this exact name inventory
+// while the checksum manifests below remain canonically ordered.
+
+export const PHASE8_IDENTITY_KEYS = Object.freeze([
+  "version",
+  "rcTag",
+  "commit",
+  "packageLockSha256",
+  "provenanceSha256",
+  "payloadManifestSha256",
+  "artifactSetSha256",
+]);
+
+export const PHASE8_EVIDENCE_KEYS = Object.freeze([
+  "performance",
+  "soak",
+  "lighthouse",
+  "windowsAcceptance",
+  "qualitySecurity",
+  "productionAudit",
+  "developmentAudit",
+  "sbom",
+  "licenseInventory",
+  "secretScan",
+  "previewAcceptance",
+]);
+
+export const PUBLICATION_EVIDENCE_ARTIFACT_PREFIX = "publication-evidence-v1.5.0-attempt-";
+export const PUBLICATION_EVIDENCE_FILES = Object.freeze([
+  "phase8-certification.json",
+  "phase9-audit-one.json",
+  "phase9-audit-two.json",
+  "publication-binding.json",
 ]);
 
 export const PRIVATE_OR_SOURCE_PATH = /(?:^|\/)(?:\.env(?:\.|$)|auth\.json$|id_(?:rsa|dsa|ecdsa|ed25519)$|electron\/|renderer\/|src\/|node_modules\/|app\.asar(?:\.unpacked)?\/)|\.(?:pfx|p12|p8|pem|key|ppk|jks|keystore|ts|tsx|jsx|cjs|mjs)(?:$|\/)/iu;

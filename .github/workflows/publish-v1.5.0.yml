@@ -5,12 +5,16 @@ run-name: Validate v1.5.0 for publication after Phase 9 by ${{ github.actor }}
 on:
   workflow_dispatch:
     inputs:
+      phase8_publication_receipt:
+        description: Base64-encoded exact phase8-certification.json pinned by the manifest
+        required: true
+        type: string
       phase9_audit_one:
-        description: First clean Phase 9 audit evidence reference
+        description: Base64-encoded first clean Phase 9 audit receipt JSON
         required: true
         type: string
       phase9_audit_two:
-        description: Second clean Phase 9 audit evidence reference
+        description: Base64-encoded second clean Phase 9 audit receipt JSON chained to the first
         required: true
         type: string
       confirmation:
@@ -36,6 +40,7 @@ jobs:
       RELEASE_TAG: v1.5.0
       EXPECTED_CONFIRMATION: VALIDATE v1.5.0 FOR ADMIN PUBLICATION
       CONFIRMATION: ${{ inputs.confirmation }}
+      PHASE8_RECEIPT: ${{ inputs.phase8_publication_receipt }}
       AUDIT_ONE: ${{ inputs.phase9_audit_one }}
       AUDIT_TWO: ${{ inputs.phase9_audit_two }}
       DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
@@ -46,20 +51,28 @@ jobs:
           fetch-depth: 0
           ref: ${{ github.sha }}
 
-      - name: Enforce manual Phase 9 attestations
+      - name: Enforce the manual request and current protected commit
         shell: pwsh
         run: |
           if ($env:CONFIRMATION -cne $env:EXPECTED_CONFIRMATION) {
             throw 'The exact publication confirmation phrase was not supplied.'
           }
-          if ([string]::IsNullOrWhiteSpace($env:AUDIT_ONE) -or
-              [string]::IsNullOrWhiteSpace($env:AUDIT_TWO) -or
-              $env:AUDIT_ONE -ceq $env:AUDIT_TWO) {
-            throw 'Two distinct Phase 9 audit evidence references are required.'
+          if ([string]::IsNullOrWhiteSpace($env:PHASE8_RECEIPT) -or
+              [string]::IsNullOrWhiteSpace($env:AUDIT_ONE) -or
+              [string]::IsNullOrWhiteSpace($env:AUDIT_TWO)) {
+            throw 'The Phase 8 certificate and two Phase 9 audit receipts are required.'
           }
           if ($env:GITHUB_REF -cne "refs/heads/$env:DEFAULT_BRANCH" -or
               $env:WORKFLOW_REF_PROTECTED -cne 'true') {
             throw 'Publication must run from the protected default branch.'
+          }
+          $repository = gh api "repos/$env:GITHUB_REPOSITORY" | ConvertFrom-Json
+          if ($LASTEXITCODE -ne 0 -or $repository.default_branch -cne $env:DEFAULT_BRANCH) {
+            throw 'Could not confirm the current default branch.'
+          }
+          $branch = gh api "repos/$env:GITHUB_REPOSITORY/branches/$env:DEFAULT_BRANCH" | ConvertFrom-Json
+          if ($LASTEXITCODE -ne 0 -or -not $branch.protected -or $branch.commit.sha -cne $env:GITHUB_SHA) {
+            throw 'The workflow commit is no longer the current protected default-branch tip.'
           }
           node scripts/check-public-repository.mjs
           if ($LASTEXITCODE -ne 0) { throw 'Public repository policy validation failed.' }
@@ -76,7 +89,10 @@ jobs:
           $matches = @($releases | Where-Object { $_.tag_name -ceq $env:RELEASE_TAG })
           if ($matches.Count -ne 1) { throw 'Exactly one existing v1.5.0 draft release is required.' }
           $release = $matches[0]
-          if (-not $release.draft) { throw 'The existing v1.5.0 release is not a draft.' }
+          if (-not $release.draft -or $release.prerelease -or
+              $release.name -cne 'Codex Quota Monitor v1.5.0') {
+            throw 'The existing v1.5.0 release metadata is not the exact non-prerelease draft contract.'
+          }
           $checkoutCommit = (git rev-parse HEAD).Trim()
           if ($LASTEXITCODE -ne 0) { throw 'Could not resolve the checked-out commit.' }
           node scripts/validate-publication-target.mjs `
@@ -91,21 +107,68 @@ jobs:
           if ($exactTags.Count -ne 0) {
             throw 'The protected v1.5.0 tag must not exist before Phase 9 publication.'
           }
+          $fingerprintText = @($release.assets | Sort-Object -Property name | ForEach-Object {
+            "$($_.id)|$($_.name)|$($_.size)|$($_.updated_at)"
+          }) -join "`n"
+          $fingerprintBytes = [Text.Encoding]::UTF8.GetBytes($fingerprintText)
+          $fingerprint = [Convert]::ToHexString(
+            [Security.Cryptography.SHA256]::HashData($fingerprintBytes)
+          ).ToLowerInvariant()
           "release_id=$($release.id)" >> $env:GITHUB_OUTPUT
+          "asset_fingerprint=$fingerprint" >> $env:GITHUB_OUTPUT
 
-      - name: Download and validate the draft assets
+      - name: Download and validate the draft assets and immutable receipts
         shell: pwsh
         run: |
           New-Item -ItemType Directory -Path release-assets -ErrorAction Stop | Out-Null
+          New-Item -ItemType Directory -Path publication-evidence -ErrorAction Stop | Out-Null
           gh release download $env:RELEASE_TAG --dir release-assets
           if ($LASTEXITCODE -ne 0) { throw 'Authenticated draft asset download failed.' }
-          node scripts/validate-release-assets.mjs --manifest .github/releases/v1.5.0.json --artifacts release-assets --publish
-          if ($LASTEXITCODE -ne 0) { throw 'Release asset validation failed.' }
+          try {
+            [IO.File]::WriteAllBytes(
+              (Join-Path $PWD 'publication-evidence/phase8-certification.json'),
+              [Convert]::FromBase64String($env:PHASE8_RECEIPT)
+            )
+            [IO.File]::WriteAllBytes(
+              (Join-Path $PWD 'publication-evidence/phase9-audit-one.json'),
+              [Convert]::FromBase64String($env:AUDIT_ONE)
+            )
+            [IO.File]::WriteAllBytes(
+              (Join-Path $PWD 'publication-evidence/phase9-audit-two.json'),
+              [Convert]::FromBase64String($env:AUDIT_TWO)
+            )
+          } catch {
+            throw 'Publication evidence inputs must be valid base64.'
+          }
+          node scripts/validate-publication-evidence.mjs `
+            --manifest .github/releases/v1.5.0.json `
+            --artifacts release-assets `
+            --canonical-root . `
+            --phase8-receipt publication-evidence/phase8-certification.json `
+            --audit-one publication-evidence/phase9-audit-one.json `
+            --audit-two publication-evidence/phase9-audit-two.json `
+            --reviewed-commit "$env:GITHUB_SHA" `
+            --draft-release-id "${{ steps.draft.outputs.release_id }}" `
+            --binding-output publication-evidence/publication-binding.json
+          if ($LASTEXITCODE -ne 0) { throw 'Publication evidence or release asset validation failed.' }
           & ./scripts/Test-DetachedChecksumSignature.ps1 `
             -InputPath release-assets/SHA256SUMS.txt `
             -SignaturePath release-assets/SHA256SUMS.p7s `
             -ExpectedThumbprint 8452BCAFAD093D33D122097AD7D112A42A26526D
           if ($LASTEXITCODE -ne 0) { throw 'Detached checksum signature validation failed.' }
+
+      - name: Preserve the exact validated publication receipts
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: publication-evidence-v1.5.0-attempt-${{ github.run_attempt }}
+          path: |
+            publication-evidence/phase8-certification.json
+            publication-evidence/phase9-audit-one.json
+            publication-evidence/phase9-audit-two.json
+            publication-evidence/publication-binding.json
+          if-no-files-found: error
+          retention-days: 7
+          compression-level: 0
 
       - name: Recheck the draft and record publication evidence
         shell: pwsh
@@ -113,8 +176,20 @@ jobs:
           $releaseJson = gh api "repos/$env:GITHUB_REPOSITORY/releases/${{ steps.draft.outputs.release_id }}"
           if ($LASTEXITCODE -ne 0) { throw 'Could not perform the final authenticated draft check.' }
           $release = $releaseJson | ConvertFrom-Json
-          if (-not $release.draft -or $release.tag_name -cne $env:RELEASE_TAG) {
+          if (-not $release.draft -or $release.prerelease -or
+              $release.tag_name -cne $env:RELEASE_TAG -or
+              $release.name -cne 'Codex Quota Monitor v1.5.0') {
             throw 'The validated release is no longer the expected draft.'
+          }
+          $fingerprintText = @($release.assets | Sort-Object -Property name | ForEach-Object {
+            "$($_.id)|$($_.name)|$($_.size)|$($_.updated_at)"
+          }) -join "`n"
+          $fingerprintBytes = [Text.Encoding]::UTF8.GetBytes($fingerprintText)
+          $fingerprint = [Convert]::ToHexString(
+            [Security.Cryptography.SHA256]::HashData($fingerprintBytes)
+          ).ToLowerInvariant()
+          if ($fingerprint -cne '${{ steps.draft.outputs.asset_fingerprint }}') {
+            throw 'The six authenticated draft assets changed during validation.'
           }
           $checkoutCommit = (git rev-parse HEAD).Trim()
           if ($LASTEXITCODE -ne 0) { throw 'Could not resolve the checked-out commit.' }
@@ -130,6 +205,14 @@ jobs:
           if ($exactTags.Count -ne 0) {
             throw 'The protected v1.5.0 tag appeared before publication validation completed.'
           }
+          $repository = gh api "repos/$env:GITHUB_REPOSITORY" | ConvertFrom-Json
+          if ($LASTEXITCODE -ne 0 -or $repository.default_branch -cne $env:DEFAULT_BRANCH) {
+            throw 'Could not perform the final default-branch check.'
+          }
+          $branch = gh api "repos/$env:GITHUB_REPOSITORY/branches/$env:DEFAULT_BRANCH" | ConvertFrom-Json
+          if ($LASTEXITCODE -ne 0 -or -not $branch.protected -or $branch.commit.sha -cne $env:GITHUB_SHA) {
+            throw 'The reviewed commit is no longer the current protected default-branch tip.'
+          }
 
           $runUrl = "$env:GITHUB_SERVER_URL/$env:GITHUB_REPOSITORY/actions/runs/$env:GITHUB_RUN_ID"
           @"
@@ -139,6 +222,7 @@ jobs:
           - Run ID / attempt: $env:GITHUB_RUN_ID / $env:GITHUB_RUN_ATTEMPT
           - Reviewed public commit: $env:GITHUB_SHA
           - Authenticated draft release ID: ${{ steps.draft.outputs.release_id }}
+          - Immutable publication evidence artifact: publication-evidence-v1.5.0-attempt-${{ github.run_attempt }}
           - Protected v1.5.0 tag: absent at final validation check
 
           An authenticated organization administrator must now run scripts/Publish-ValidatedRelease.ps1 with this run ID, attempt, and commit. This validation job does not create a tag or publish a release.

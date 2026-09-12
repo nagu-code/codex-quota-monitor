@@ -17,7 +17,7 @@
     "Remove-NaguCodexCurrentUserCertificateTrust.ps1": "# Fixture only; does not modify a certificate store.\n",
     "SECURITY.md": "Fixture security notice.\n",
     "SHA256SUMS.p7s": "FIXTURE ONLY - detached-signature placeholder, not a CMS signature.\n",
-    "SIGNED-PAYLOAD-MANIFEST.json": "{\"fixture\":true}\n",
+    "SIGNED-PAYLOAD-MANIFEST.json": "{\"schemaVersion\":1,\"hashAlgorithm\":\"SHA-256\",\"phase\":\"pre-signing\",\"payloadRoot\":\"resources\",\"source\":{\"commit\":\"1111111111111111111111111111111111111111\",\"releaseCandidateTags\":[\"v1.5.0-rc.1\"],\"packageLockSha256\":\"2222222222222222222222222222222222222222222222222222222222222222\",\"nodeVersion\":\"22.23.2\",\"electronVersion\":\"44.3.0\",\"electronBuilderVersion\":\"26.15.3\"},\"files\":[{\"path\":\"app.asar\",\"size\":12,\"sha256\":\"3333333333333333333333333333333333333333333333333333333333333333\"}]}\n",
     "SIGNING-POLICY.md": "Fixture signing policy.\n",
     "Test-NaguCodexDistributionIntegrity.ps1": "# Fixture only; performs no operations.\n",
     "THIRD-PARTY-NOTICES.md": "Fixture third-party notices.\n"

@@ -16,18 +16,40 @@ Before the publish workflow can be used, an organization owner must:
 
 After an immutable RC passes every Phase 8 gate:
 
-1. replace every `null` in `.github/releases/v1.5.0.json` with certified values, including the exact private RC tag, its 40-character private commit SHA, the immutable Phase 8 evidence reference, all six asset sizes and SHA-256 values, and the `SHA256SUMS.txt` digest;
-2. set `status` to `certified-phase-8`, commit the manifest, and complete review on the protected default branch;
-3. record the resulting reviewed public commit's full lowercase 40-character SHA; and
-4. create the authenticated draft release outside the publish workflow, set `target_commitish` to that literal public commit SHA (never a branch or other mutable ref), and upload only the six assets named in the manifest.
+1. retain the exact generated `release/certification/phase8-certification.json` as the sanitized Phase 8 publication receipt, calculate the SHA-256 of its exact bytes, and do not edit or reserialize it;
+2. replace every `null` in `.github/releases/v1.5.0.json` with certified values, including the exact private RC tag, its 40-character private commit SHA, the lowercase Phase 8 publication-receipt SHA-256, all six asset sizes and SHA-256 values, and the `SHA256SUMS.txt` digest;
+3. set `status` to `certified-phase-8`, commit the manifest, and complete review on the protected default branch;
+4. record the resulting reviewed public commit's full lowercase 40-character SHA; and
+5. create the authenticated draft release outside the publish workflow with the exact title `Codex Quota Monitor v1.5.0`, leave `prerelease` false, set `target_commitish` to that literal public commit SHA (never a branch or other mutable ref), and upload only the six assets named in the manifest.
 
-The manifest is the Phase 8 binding to the private RC, evidence, artifact hashes, and signing identity. It deliberately does not contain its own public commit SHA, which would be a circular and impossible claim. The authenticated draft supplies the public-commit binding after the manifest commit exists. The draft must remain a draft, and the `v1.5.0` tag must not exist, throughout Phase 8. Large binaries and release assets must never be committed to Git.
+The manifest hashes the exact Phase 8 certificate instead of accepting a free-form evidence label. At publication validation, the certificate's existing seven-field identity (`version`, `rcTag`, `commit`, `packageLockSha256`, `provenanceSha256`, `payloadManifestSha256`, and `artifactSetSha256`) is compared with the manifest, the exact six-artifact set, and the signed bundle's real `SIGNED-PAYLOAD-MANIFEST.json` schema. The certificate and its evidence paths must remain sanitized as required by the private Phase 8 generator; do not place secrets or machine-absolute paths in workflow inputs.
+
+The manifest deliberately does not contain its own public commit SHA, which would be circular. The authenticated draft supplies that binding after the manifest commit exists. The draft must retain its exact title, remain a non-prerelease draft, and the `v1.5.0` tag must not exist throughout Phase 8. Large binaries, release assets, and evidence receipts must never be committed to Git.
 
 ## Phase 9 publication
 
-Only after two consecutive clean, fresh Phase 9 audits may an authorized publisher manually run **Validate certified v1.5.0 draft**. The two distinct audit evidence references must match the exact private RC, Phase 8 evidence, authenticated draft, six assets, and reviewed public commit. The publisher must select the protected default branch at that same reviewed commit and type `VALIDATE v1.5.0 FOR ADMIN PUBLICATION`. If the branch or draft target moves, fresh audits are required against the new exact commit.
+Only after two consecutive clean, fresh Phase 9 audits may an authorized publisher manually run **Validate certified v1.5.0 draft**. Free-form audit references are not accepted. Each audit must emit an immutable UTF-8 JSON receipt matching `.github/phase9-audit-receipt.schema.json` and these exact root fields:
 
-The read-only workflow finds an existing draft; it cannot create a release, upload assets, or create a tag. It checks that it is running from the protected default branch and that the checked-out `HEAD` equals the immutable `GITHUB_SHA`. It requires the authenticated draft's `target_commitish` to be that exact 40-character SHA, so `main` or any other mutable ref fails closed. It then downloads the draft assets with authentication, checks the exact top-level and signed-ZIP inventories, verifies sizes and SHA-256 values against both checksum files and the manifest, rejects forbidden private-key/source paths, and verifies the detached CMS signature and fixed signer thumbprint. After a final draft, target, and tag-absence check, its job summary records the successful run ID, run attempt, reviewed commit, and draft ID.
+- `schemaVersion: 1`, `kind: "phase9-audit-receipt"`, and `status: "clean"`;
+- `audit`: `sequence`, unique `auditId`, unique `auditorId`, UTC `completedAtUtc`, and `previousAuditReceiptSha256`;
+- `phase8Identity`: the exact seven fields from the hashed Phase 8 certificate; and
+- `publication`: `phase8PublicationReceiptSha256`, `publicReviewedCommit`, and numeric `draftReleaseId`.
+
+Audit one uses sequence `1` and a null previous hash. Audit two uses sequence `2` and its previous hash is the lowercase SHA-256 of audit one's exact file bytes. Both audits must be later than the Phase 8 certificate, the second must be later than the first, their audit and auditor identities must differ, and every Phase 8/publication identity value must match exactly.
+
+Base64-encode the exact Phase 8 certificate and both exact audit receipt files for the three workflow inputs. Base64 is only transport encoding; the decoded bytes are hash-validated and parsed as JSON. For example:
+
+```powershell
+$phase8Base64 = [Convert]::ToBase64String([IO.File]::ReadAllBytes($Phase8CertificatePath))
+$auditOneBase64 = [Convert]::ToBase64String([IO.File]::ReadAllBytes($AuditOnePath))
+$auditTwoBase64 = [Convert]::ToBase64String([IO.File]::ReadAllBytes($AuditTwoPath))
+```
+
+The publisher must select the protected default branch at the reviewed commit and type `VALIDATE v1.5.0 FOR ADMIN PUBLICATION`. If its tip or the draft target moves, fresh audits are required against the new exact commit and draft.
+
+The validation workflow finds an existing draft; it cannot create a release, publish it, upload release assets, or create a tag. It checks that it is running at the current protected default-branch tip and that checked-out `HEAD` equals immutable `GITHUB_SHA`. It requires the exact non-prerelease draft title and literal 40-character `target_commitish`. It downloads the six draft assets, enforces canonical LF-sorted checksum lines, exact inventories, sizes, hashes, the reviewed checkout's exact `INSTALLATION.txt`/`LICENSE.txt` bytes, and the fixed detached signer.
+
+The workflow decodes and validates the three receipts, including the Phase 8 certificate hash, full shared identity, signed payload manifest, chained distinct clean audits, public commit, draft ID and artifact-set digest. It then stores only those sanitized receipt bytes plus a canonical binding in the immutable, seven-day `publication-evidence-v1.5.0-attempt-N` workflow artifact. This Actions artifact is not a GitHub Release asset and grants no content-write permission. Afterward, a final step rechecks draft metadata and asset fingerprint, exact target, tag absence, and the still-current protected default-branch tip. Failed runs and their artifacts cannot authorize publication.
 
 The designated organization administrator must then use a clean checkout of the recorded commit and run the parent publication command, substituting the exact values from that successful job summary:
 
@@ -39,6 +61,8 @@ pwsh ./scripts/Publish-ValidatedRelease.ps1 `
   -Confirmation "PUBLISH v1.5.0 FROM VALIDATED RUN 123456789 ATTEMPT 1"
 ```
 
-This script refuses a dirty or different checkout, an unsuccessful/different workflow run or attempt, a caller without the active organization-admin version-tag bypass, a changed or non-draft release, a mutable or mismatched target, changed assets, a missing signature, or a pre-existing tag. It repeats all repository, manifest, asset, signature, draft-target, and tag-absence checks immediately before one Releases API operation publishes the draft and creates the protected tag at its already-validated `target_commitish`. Organization administrators must serialize this parent step and perform no concurrent tag or release operations. A tag-protection rejection stops publication; any unexpected result after the publication call invokes the private release-withdrawal runbook.
+This script refuses a dirty or different checkout, a stale default-branch tip, an unsuccessful/different workflow run or attempt, a missing/expired/ambiguous publication-evidence artifact, a caller without the exact active organization-admin version-tag bypass, a changed or incorrectly titled/prerelease draft, a mutable or mismatched target, changed assets, changed canonical documents, invalid receipt bindings, a missing signature, or a pre-existing tag. It downloads the immutable workflow artifact, revalidates the exact receipt bytes locally without private-repository access, and repeats all repository, manifest, asset, signature, draft-target, branch-tip and tag-absence checks immediately before one Releases API operation explicitly sets `draft=false` and `prerelease=false`. Organization administrators must serialize this parent step and perform no concurrent tag or release operations. A tag-protection rejection stops publication; any unexpected result after the publication call invokes the private release-withdrawal runbook.
+
+ZIP central-directory order is deliberately non-contractual because it has no semantic meaning. The exact signed-ZIP filename set is contractual. Both internal and top-level `SHA256SUMS.txt` files, however, must contain exactly the expected LF-terminated entries in locale-stable filename order.
 
 Anonymous download and installation checks remain a mandatory post-publication smoke gate. A failure invokes the release-withdrawal and website-rollback runbook in the private source repository.

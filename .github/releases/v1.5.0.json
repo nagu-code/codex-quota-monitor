@@ -1,5 +1,5 @@
 {
-  "schemaVersion": 2,
+  "schemaVersion": 3,
   "kind": "nagu-codex-quota-monitor-public-release",
   "product": "Codex Quota Monitor",
   "version": "1.5.0",
@@ -10,7 +10,7 @@
     "privateCommit": null
   },
   "certification": {
-    "phase8EvidenceRef": null
+    "phase8PublicationReceiptSha256": null
   },
   "signing": {
     "signatureFormat": "detached-cms-pkcs7",

@@ -1,0 +1,77 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/nagu-code/codex-quota-monitor/.github/phase9-audit-receipt.schema.json",
+  "title": "Codex Quota Monitor Phase 9 audit receipt",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "kind", "status", "audit", "phase8Identity", "publication"],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "kind": { "const": "phase9-audit-receipt" },
+    "status": { "const": "clean" },
+    "audit": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["sequence", "auditId", "auditorId", "completedAtUtc", "previousAuditReceiptSha256"],
+      "properties": {
+        "sequence": { "enum": [1, 2] },
+        "auditId": { "$ref": "#/$defs/auditToken" },
+        "auditorId": { "$ref": "#/$defs/auditToken" },
+        "completedAtUtc": { "$ref": "#/$defs/utc" },
+        "previousAuditReceiptSha256": {
+          "oneOf": [
+            { "type": "null" },
+            { "$ref": "#/$defs/lowerHash" }
+          ]
+        }
+      }
+    },
+    "phase8Identity": { "$ref": "#/$defs/phase8Identity" },
+    "publication": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["phase8PublicationReceiptSha256", "publicReviewedCommit", "draftReleaseId"],
+      "properties": {
+        "phase8PublicationReceiptSha256": { "$ref": "#/$defs/lowerHash" },
+        "publicReviewedCommit": { "type": "string", "pattern": "^[a-f0-9]{40}$" },
+        "draftReleaseId": { "type": "integer", "minimum": 1 }
+      }
+    }
+  },
+  "$defs": {
+    "hash": { "type": "string", "pattern": "^[A-Fa-f0-9]{64}$" },
+    "lowerHash": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "auditToken": {
+      "type": "string",
+      "minLength": 3,
+      "maxLength": 128,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:@/-]+$"
+    },
+    "utc": {
+      "type": "string",
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d{3,7})?Z$"
+    },
+    "phase8Identity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "version",
+        "rcTag",
+        "commit",
+        "packageLockSha256",
+        "provenanceSha256",
+        "payloadManifestSha256",
+        "artifactSetSha256"
+      ],
+      "properties": {
+        "version": { "const": "1.5.0" },
+        "rcTag": { "type": "string", "pattern": "^v1\\.5\\.0-rc\\.[1-9][0-9]*$" },
+        "commit": { "type": "string", "pattern": "^[a-f0-9]{40}$" },
+        "packageLockSha256": { "$ref": "#/$defs/hash" },
+        "provenanceSha256": { "$ref": "#/$defs/hash" },
+        "payloadManifestSha256": { "$ref": "#/$defs/hash" },
+        "artifactSetSha256": { "$ref": "#/$defs/hash" }
+      }
+    }
+  }
+}
