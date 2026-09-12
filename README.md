@@ -2,7 +2,7 @@
 
 Codex Quota Monitor is a local Windows desktop dashboard for viewing Codex subscription limits across multiple accounts you are authorized to access. It is published by Nagu Corporate Private Limited.
 
-> **Release status: certification pending.** Version 1.5.0 binaries and checksums are not yet a public, certified release. Do not install candidate or privately shared artifacts. When certification and the final audit are complete, the official files will appear on the [GitHub Releases page](https://github.com/nagu-code/codex-quota-monitor/releases) and the planned product site at `https://codex-tracker.nagu.co/`.
+> **Release status: certification pending.** Version 1.5.0 binaries and checksums are not yet a public, certified release. Do not install candidate or privately shared artifacts. The canonical [Codex Quota Monitor product website](https://codex-tracker.nagu.co/) may publish product and verification guidance while certification remains pending, but it does not make a candidate safe to install. When certification and the final audit are complete, official files will be identified on the [GitHub Releases page](https://github.com/nagu-code/codex-quota-monitor/releases) and linked from the product website.
 
 ## What it does
 
@@ -31,7 +31,7 @@ No Node.js installation or source checkout is required to use the compiled Windo
 
 ## Download and install
 
-After the release-status notice above changes to certified, download only from the official [GitHub Releases page](https://github.com/nagu-code/codex-quota-monitor/releases) or, once it is live, `https://codex-tracker.nagu.co/`. Verify the published SHA-256 values before opening an installer.
+After the release-status notice above changes to certified, download only from the official [GitHub Releases page](https://github.com/nagu-code/codex-quota-monitor/releases) or through the canonical [product website](https://codex-tracker.nagu.co/). Until then, both destinations must fail closed: the filenames below describe planned distributions and are not live-download claims. Verify independently published SHA-256 values before opening any installer.
 
 Two Windows distributions are planned for version 1.5.0:
 
@@ -71,9 +71,12 @@ Redistribution is limited to exact, official, unmodified releases with required 
 
 Report suspected vulnerabilities privately and omit credentials and personal account data. More detail is available in [SUPPORT.md](SUPPORT.md).
 
-## Publisher and trademarks
+## Official websites, publisher, and trademarks
 
-[Powered and shipped by Nagu](https://nagu.co/).
+- Canonical product website: [codex-tracker.nagu.co](https://codex-tracker.nagu.co/)
+- Publisher website: [Nagu](https://nagu.co/)
+
+Powered and shipped by Nagu Corporate Private Limited.
 
 Codex Quota Monitor is an independent product from Nagu Corporate Private Limited. It is not affiliated with, endorsed by, or sponsored by OpenAI. OpenAI, ChatGPT, and Codex are trademarks or registered trademarks of their respective owners. Their names are used only to identify compatibility and the service the product monitors.
 
