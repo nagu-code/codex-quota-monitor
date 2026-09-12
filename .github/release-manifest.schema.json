@@ -17,7 +17,7 @@
     "artifacts"
   ],
   "properties": {
-    "schemaVersion": { "const": 1 },
+    "schemaVersion": { "const": 2 },
     "kind": { "const": "nagu-codex-quota-monitor-public-release" },
     "product": { "const": "Codex Quota Monitor" },
     "version": { "const": "1.5.0" },
@@ -28,17 +28,13 @@
     "source": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["privateRcTag", "privateCommit", "publicCommit"],
+      "required": ["privateRcTag", "privateCommit"],
       "properties": {
         "privateRcTag": {
           "type": ["string", "null"],
           "pattern": "^v1\\.5\\.0-rc\\.[1-9][0-9]*$"
         },
         "privateCommit": {
-          "type": ["string", "null"],
-          "pattern": "^[a-f0-9]{40}$"
-        },
-        "publicCommit": {
           "type": ["string", "null"],
           "pattern": "^[a-f0-9]{40}$"
         }
@@ -90,8 +86,7 @@
           "source": {
             "properties": {
               "privateRcTag": { "type": "string" },
-              "privateCommit": { "type": "string" },
-              "publicCommit": { "type": "string" }
+              "privateCommit": { "type": "string" }
             }
           },
           "certification": {

@@ -1,6 +1,6 @@
-name: Publish certified v1.5.0 draft
+name: Validate certified v1.5.0 draft
 
-run-name: Publish v1.5.0 after Phase 9 by ${{ github.actor }}
+run-name: Validate v1.5.0 for publication after Phase 9 by ${{ github.actor }}
 
 on:
   workflow_dispatch:
@@ -14,7 +14,7 @@ on:
         required: true
         type: string
       confirmation:
-        description: Type PUBLISH v1.5.0 AFTER TWO CLEAN PHASE 9 AUDITS
+        description: Type VALIDATE v1.5.0 FOR ADMIN PUBLICATION
         required: true
         type: string
 
@@ -26,26 +26,30 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  publish-existing-draft:
+  validate-existing-draft:
     permissions:
-      contents: write
+      contents: read
     runs-on: windows-2022
     environment: production-release
     env:
       GH_TOKEN: ${{ github.token }}
       RELEASE_TAG: v1.5.0
-      EXPECTED_CONFIRMATION: PUBLISH v1.5.0 AFTER TWO CLEAN PHASE 9 AUDITS
+      EXPECTED_CONFIRMATION: VALIDATE v1.5.0 FOR ADMIN PUBLICATION
+      CONFIRMATION: ${{ inputs.confirmation }}
       AUDIT_ONE: ${{ inputs.phase9_audit_one }}
       AUDIT_TWO: ${{ inputs.phase9_audit_two }}
+      DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+      WORKFLOW_REF_PROTECTED: ${{ github.ref_protected }}
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
           fetch-depth: 0
+          ref: ${{ github.sha }}
 
       - name: Enforce manual Phase 9 attestations
         shell: pwsh
         run: |
-          if ('${{ inputs.confirmation }}' -cne $env:EXPECTED_CONFIRMATION) {
+          if ($env:CONFIRMATION -cne $env:EXPECTED_CONFIRMATION) {
             throw 'The exact publication confirmation phrase was not supplied.'
           }
           if ([string]::IsNullOrWhiteSpace($env:AUDIT_ONE) -or
@@ -53,21 +57,39 @@ jobs:
               $env:AUDIT_ONE -ceq $env:AUDIT_TWO) {
             throw 'Two distinct Phase 9 audit evidence references are required.'
           }
+          if ($env:GITHUB_REF -cne "refs/heads/$env:DEFAULT_BRANCH" -or
+              $env:WORKFLOW_REF_PROTECTED -cne 'true') {
+            throw 'Publication must run from the protected default branch.'
+          }
           node scripts/check-public-repository.mjs
+          if ($LASTEXITCODE -ne 0) { throw 'Public repository policy validation failed.' }
           node scripts/validate-release-manifest.mjs --manifest .github/releases/v1.5.0.json --publish
+          if ($LASTEXITCODE -ne 0) { throw 'Certified release manifest validation failed.' }
 
-      - name: Locate the existing authenticated draft
+      - name: Locate the exact-commit authenticated draft
         id: draft
         shell: pwsh
         run: |
-          $releases = gh api "repos/$env:GITHUB_REPOSITORY/releases?per_page=100" | ConvertFrom-Json
+          $releaseJson = gh api "repos/$env:GITHUB_REPOSITORY/releases?per_page=100"
+          if ($LASTEXITCODE -ne 0) { throw 'Could not read authenticated releases.' }
+          $releases = $releaseJson | ConvertFrom-Json
           $matches = @($releases | Where-Object { $_.tag_name -ceq $env:RELEASE_TAG })
           if ($matches.Count -ne 1) { throw 'Exactly one existing v1.5.0 draft release is required.' }
           $release = $matches[0]
           if (-not $release.draft) { throw 'The existing v1.5.0 release is not a draft.' }
-          $manifest = Get-Content -Raw '.github/releases/v1.5.0.json' | ConvertFrom-Json
-          if ($release.target_commitish -cne $manifest.source.publicCommit) {
-            throw 'The draft target does not equal the certified public commit.'
+          $checkoutCommit = (git rev-parse HEAD).Trim()
+          if ($LASTEXITCODE -ne 0) { throw 'Could not resolve the checked-out commit.' }
+          node scripts/validate-publication-target.mjs `
+            --draft-target "$($release.target_commitish)" `
+            --workflow-commit "$env:GITHUB_SHA" `
+            --checkout-commit "$checkoutCommit"
+          if ($LASTEXITCODE -ne 0) { throw 'Authenticated draft target validation failed.' }
+
+          $tagJson = gh api "repos/$env:GITHUB_REPOSITORY/git/matching-refs/tags/$env:RELEASE_TAG"
+          if ($LASTEXITCODE -ne 0) { throw 'Could not verify release-tag absence.' }
+          $exactTags = @($tagJson | ConvertFrom-Json | Where-Object { $_.ref -ceq "refs/tags/$env:RELEASE_TAG" })
+          if ($exactTags.Count -ne 0) {
+            throw 'The protected v1.5.0 tag must not exist before Phase 9 publication.'
           }
           "release_id=$($release.id)" >> $env:GITHUB_OUTPUT
 
@@ -76,15 +98,48 @@ jobs:
         run: |
           New-Item -ItemType Directory -Path release-assets -ErrorAction Stop | Out-Null
           gh release download $env:RELEASE_TAG --dir release-assets
+          if ($LASTEXITCODE -ne 0) { throw 'Authenticated draft asset download failed.' }
           node scripts/validate-release-assets.mjs --manifest .github/releases/v1.5.0.json --artifacts release-assets --publish
+          if ($LASTEXITCODE -ne 0) { throw 'Release asset validation failed.' }
           & ./scripts/Test-DetachedChecksumSignature.ps1 `
             -InputPath release-assets/SHA256SUMS.txt `
             -SignaturePath release-assets/SHA256SUMS.p7s `
             -ExpectedThumbprint 8452BCAFAD093D33D122097AD7D112A42A26526D
+          if ($LASTEXITCODE -ne 0) { throw 'Detached checksum signature validation failed.' }
 
-      - name: Publish the validated existing draft
+      - name: Recheck the draft and record publication evidence
         shell: pwsh
         run: |
-          $notes = Get-Content -Raw '.github/release-notes/v1.5.0.md'
-          $payload = @{ draft = $false; body = $notes; make_latest = 'false' } | ConvertTo-Json
-          $payload | gh api --method PATCH "repos/$env:GITHUB_REPOSITORY/releases/${{ steps.draft.outputs.release_id }}" --input - | Out-Null
+          $releaseJson = gh api "repos/$env:GITHUB_REPOSITORY/releases/${{ steps.draft.outputs.release_id }}"
+          if ($LASTEXITCODE -ne 0) { throw 'Could not perform the final authenticated draft check.' }
+          $release = $releaseJson | ConvertFrom-Json
+          if (-not $release.draft -or $release.tag_name -cne $env:RELEASE_TAG) {
+            throw 'The validated release is no longer the expected draft.'
+          }
+          $checkoutCommit = (git rev-parse HEAD).Trim()
+          if ($LASTEXITCODE -ne 0) { throw 'Could not resolve the checked-out commit.' }
+          node scripts/validate-publication-target.mjs `
+            --draft-target "$($release.target_commitish)" `
+            --workflow-commit "$env:GITHUB_SHA" `
+            --checkout-commit "$checkoutCommit"
+          if ($LASTEXITCODE -ne 0) { throw 'Final authenticated draft target validation failed.' }
+
+          $tagJson = gh api "repos/$env:GITHUB_REPOSITORY/git/matching-refs/tags/$env:RELEASE_TAG"
+          if ($LASTEXITCODE -ne 0) { throw 'Could not perform the final validation-time release-tag absence check.' }
+          $exactTags = @($tagJson | ConvertFrom-Json | Where-Object { $_.ref -ceq "refs/tags/$env:RELEASE_TAG" })
+          if ($exactTags.Count -ne 0) {
+            throw 'The protected v1.5.0 tag appeared before publication validation completed.'
+          }
+
+          $runUrl = "$env:GITHUB_SERVER_URL/$env:GITHUB_REPOSITORY/actions/runs/$env:GITHUB_RUN_ID"
+          @"
+          ### v1.5.0 publication validation passed
+
+          - Workflow run: $runUrl
+          - Run ID / attempt: $env:GITHUB_RUN_ID / $env:GITHUB_RUN_ATTEMPT
+          - Reviewed public commit: $env:GITHUB_SHA
+          - Authenticated draft release ID: ${{ steps.draft.outputs.release_id }}
+          - Protected v1.5.0 tag: absent at final validation check
+
+          An authenticated organization administrator must now run scripts/Publish-ValidatedRelease.ps1 with this run ID, attempt, and commit. This validation job does not create a tag or publish a release.
+          "@ >> $env:GITHUB_STEP_SUMMARY

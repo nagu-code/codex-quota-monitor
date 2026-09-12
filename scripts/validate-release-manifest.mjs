@@ -2,14 +2,17 @@ import { readFile } from "node:fs/promises";
 import { pathToFileURL } from "node:url";
 import {
   ARTIFACTS,
+  COMMIT_SHA,
+  PRIVATE_RC_TAG,
   PRODUCT,
+  RELEASE_MANIFEST_KIND,
+  RELEASE_MANIFEST_SCHEMA_VERSION,
+  RELEASE_MANIFEST_STATUSES,
   SIGNER_THUMBPRINT,
   VERSION,
 } from "./release-contract.mjs";
 
 const HASH = /^[a-f0-9]{64}$/u;
-const COMMIT = /^[a-f0-9]{40}$/u;
-const RC_TAG = /^v1\.5\.0-rc\.[1-9][0-9]*$/u;
 
 function fail(message) {
   throw new Error(`release manifest: ${message}`);
@@ -37,19 +40,20 @@ export function validateManifest(manifest, { publish = false } = {}) {
     "schemaVersion", "kind", "product", "version", "status", "hashAlgorithm",
     "source", "certification", "signing", "artifacts",
   ], "root");
-  if (manifest.schemaVersion !== 1) fail("schemaVersion must be 1");
-  if (manifest.kind !== "nagu-codex-quota-monitor-public-release") fail("kind is invalid");
+  if (manifest.schemaVersion !== RELEASE_MANIFEST_SCHEMA_VERSION) {
+    fail(`schemaVersion must be ${RELEASE_MANIFEST_SCHEMA_VERSION}`);
+  }
+  if (manifest.kind !== RELEASE_MANIFEST_KIND) fail("kind is invalid");
   if (manifest.product !== PRODUCT) fail("product is invalid");
   if (manifest.version !== VERSION) fail(`version must be ${VERSION}`);
-  if (!["pending-phase-8", "certified-phase-8", "fixture"].includes(manifest.status)) {
+  if (!RELEASE_MANIFEST_STATUSES.includes(manifest.status)) {
     fail("status is invalid");
   }
   if (manifest.hashAlgorithm !== "SHA-256") fail("hashAlgorithm must be SHA-256");
 
-  exactKeys(manifest.source, ["privateRcTag", "privateCommit", "publicCommit"], "source");
-  nullableMatch(manifest.source.privateRcTag, RC_TAG, "source.privateRcTag");
-  nullableMatch(manifest.source.privateCommit, COMMIT, "source.privateCommit");
-  nullableMatch(manifest.source.publicCommit, COMMIT, "source.publicCommit");
+  exactKeys(manifest.source, ["privateRcTag", "privateCommit"], "source");
+  nullableMatch(manifest.source.privateRcTag, PRIVATE_RC_TAG, "source.privateRcTag");
+  nullableMatch(manifest.source.privateCommit, COMMIT_SHA, "source.privateCommit");
 
   exactKeys(manifest.certification, ["phase8EvidenceRef"], "certification");
   if (manifest.certification.phase8EvidenceRef !== null &&
@@ -79,9 +83,8 @@ export function validateManifest(manifest, { publish = false } = {}) {
 
   if (manifest.status === "certified-phase-8" || publish) {
     if (manifest.status !== "certified-phase-8") fail("publication requires certified-phase-8 status");
-    if (!RC_TAG.test(manifest.source.privateRcTag || "")) fail("certified private RC tag is required");
-    if (!COMMIT.test(manifest.source.privateCommit || "")) fail("certified private commit is required");
-    if (!COMMIT.test(manifest.source.publicCommit || "")) fail("certified public commit is required");
+    if (!PRIVATE_RC_TAG.test(manifest.source.privateRcTag || "")) fail("certified private RC tag is required");
+    if (!COMMIT_SHA.test(manifest.source.privateCommit || "")) fail("certified private commit is required");
     if (!manifest.certification.phase8EvidenceRef) fail("Phase 8 evidence reference is required");
     if (!HASH.test(manifest.signing.sha256SumsDigest || "")) fail("SHA256SUMS digest is required");
     for (const artifact of manifest.artifacts) {

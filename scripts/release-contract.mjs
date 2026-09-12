@@ -1,6 +1,15 @@
 export const VERSION = "1.5.0";
 export const PRODUCT = "Codex Quota Monitor";
+export const RELEASE_MANIFEST_SCHEMA_VERSION = 2;
+export const RELEASE_MANIFEST_KIND = "nagu-codex-quota-monitor-public-release";
+export const RELEASE_MANIFEST_STATUSES = Object.freeze([
+  "pending-phase-8",
+  "certified-phase-8",
+  "fixture",
+]);
 export const SIGNER_THUMBPRINT = "8452BCAFAD093D33D122097AD7D112A42A26526D";
+export const COMMIT_SHA = /^[a-f0-9]{40}$/u;
+export const PRIVATE_RC_TAG = /^v1\.5\.0-rc\.[1-9][0-9]*$/u;
 
 export const ARTIFACTS = Object.freeze([
   ["Codex-Quota-Monitor-Setup-1.5.0-x64-Unsigned.exe", true],
