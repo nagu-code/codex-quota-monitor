@@ -2,7 +2,7 @@
 
 Codex Quota Monitor is a local Windows desktop dashboard for viewing Codex subscription limits across multiple accounts you are authorized to access. It is published by Nagu Corporate Private Limited.
 
-> **Release status: certification pending.** Version 1.5.0 binaries and checksums are not yet a public, certified release. Do not install candidate or privately shared artifacts. The canonical [Codex Quota Monitor product website](https://codex-tracker.nagu.co/) may publish product and verification guidance while certification remains pending, but it does not make a candidate safe to install. When certification and the final audit are complete, official files will be identified on the [GitHub Releases page](https://github.com/nagu-code/codex-quota-monitor/releases) and linked from the product website.
+> **Release status: public release candidate; certification and support pending.** [`v1.5.0-rc.13`](https://github.com/nagu-code/codex-quota-monitor/releases/tag/v1.5.0-rc.13) is publicly downloadable, but it is an uncertified, unsupported prerelease. Its assets use final-shaped `1.5.0` filenames; those filenames do not make it official, certified, or supported. Only a future non-prerelease `v1.5.0`, approved after Phase 8 certification and the Phase 9 audits, will be the official release. Use RC13 only if you knowingly accept prerelease risk, and follow its installation and verification guidance. The canonical [Codex Quota Monitor product website](https://codex-tracker.nagu.co/) and [GitHub Releases page](https://github.com/nagu-code/codex-quota-monitor/releases) remain the official distribution channels.
 
 ## What it does
 
@@ -31,9 +31,9 @@ No Node.js installation or source checkout is required to use the compiled Windo
 
 ## Download and install
 
-After the release-status notice above changes to certified, download only from the official [GitHub Releases page](https://github.com/nagu-code/codex-quota-monitor/releases) or through the canonical [product website](https://codex-tracker.nagu.co/). Until then, both destinations must fail closed: the filenames below describe planned distributions and are not live-download claims. Verify independently published SHA-256 values before opening any installer.
+RC13 is available from the official [GitHub Releases page](https://github.com/nagu-code/codex-quota-monitor/releases), subject to the prerelease warning above. Download only from that page or through the canonical [product website](https://codex-tracker.nagu.co/), and verify independently published SHA-256 values before opening any installer. The final-shaped filenames below identify RC13 assets; they are not evidence of certification or final-release status.
 
-Two Windows distributions are planned for version 1.5.0:
+Two Windows distributions are available in RC13:
 
 1. **Unsigned EXE — simplest option:** `Codex-Quota-Monitor-Setup-1.5.0-x64-Unsigned.exe`. It has no Authenticode publisher signature, so Windows can show **Unknown publisher** or a SmartScreen warning. Continue only after the complete SHA-256 value and expected unsigned status have been verified.
 2. **Locally self-signed ZIP — advanced trust-assisted option:** `Nagu-Codex-Quota-Monitor-1.5.0-Locally-Signed.zip`. It includes the locally self-signed installer, Nagu's public certificate, current-user trust and trust-removal scripts, legal notices, hashes, and a detached checksum signature. A Nagu self-signed certificate is not equivalent to a publicly trusted certificate-authority signature. Installing it into the current user's trust stores extends trust beyond this one app, and uninstalling the app does not remove that trust.
