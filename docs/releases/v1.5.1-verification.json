@@ -1,0 +1,27 @@
+{
+  "version": "1.5.1",
+  "builtFrom": "21ecdde0c8fee86704b50d83a48bc95a313cb413",
+  "sourceTag": "v1.5.1-rc.2",
+  "checks": {
+    "freshCheckoutBuild": true,
+    "packagedAccountManagerMatchesTestedSource": true,
+    "packagedVersion": "1.5.1",
+    "packagedInstallationGuideMatches": true,
+    "credentialFilesAbsent": true,
+    "signature": "NotSigned",
+    "appRegressionTests": {
+      "passed": 526,
+      "failed": 0,
+      "skipped": 3
+    },
+    "websiteTests": {
+      "passed": 16,
+      "failed": 0
+    }
+  },
+  "limits": [
+    "Microsoft Store update 1.5.1 submitted for certification; publication not yet confirmed.",
+    "App regression and live Store-context recovery checks were completed before this website update.",
+    "Windows 11 exercised; Windows 10 acceptance not repeated. macOS/Linux installers not included."
+  ]
+}

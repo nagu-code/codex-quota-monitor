@@ -2,7 +2,7 @@
 
 A calm desktop dashboard for your Codex accounts, by [Nagu](https://nagu.co/).
 
-**Windows 1.5.0** is the current direct-download release. Get the [EXE or ZIP](https://codex-tracker.nagu.co/#download) from the product website or [GitHub Releases](https://github.com/nagu-code/codex-quota-monitor/releases/tag/v1.5.0).
+**Get Codex Quota Monitor from [Microsoft Store](https://apps.microsoft.com/detail/9P3DRP9M57W6)** for installation and updates. Prefer a direct download? The [unsigned Windows EXE v1.5.1](https://codex-tracker.nagu.co/#download) is available from the website and [GitHub Releases](https://github.com/nagu-code/codex-quota-monitor/releases/tag/v1.5.1). The 1.5.1 Store update has been submitted for certification.
 
 ![Dashboard with fictional demonstration accounts](docs/assets/dashboard-light.webp)
 
@@ -18,14 +18,11 @@ A calm desktop dashboard for your Codex accounts, by [Nagu](https://nagu.co/).
 
 ## Requirements and installation
 
-Windows x64, Internet access and a browser for the official Codex sign-in. Windows 11 is the platform exercised for this release; Windows 10 compatibility is configured but native acceptance was not repeated. No Node.js or source checkout is needed. macOS/Linux native validation is pending; no installers for those platforms are published in this release. Microsoft Store enrollment and certification are also pending.
+Windows x64, Internet access and a browser for the official Codex sign-in. Windows 11 is the platform exercised for this release; Windows 10 compatibility is configured but native acceptance was not repeated. No Node.js or source checkout is needed. macOS/Linux native validation is pending; no installers for those platforms are published in this release. The Microsoft Store listing is available. Store updates are published after Microsoft certification.
 
-Two distributions contain the same application resources:
+Choose Microsoft Store, or the unsigned EXE for direct installation. Windows can display Unknown publisher or SmartScreen warnings for the EXE. The current release does not include a ZIP or require installing a self-signed certificate.
 
-1. **Unsigned EXE:** the simplest download. Windows can display Unknown publisher or SmartScreen warnings.
-2. **Locally self-signed ZIP:** includes the signed installer, public certificate, current-user trust/removal scripts and verification files. A self-signed certificate is not a publicly trusted CA signature. Installing it extends trust beyond this application, and uninstalling the app does not remove that trust.
-
-Follow [INSTALLATION.txt](INSTALLATION.txt), including the complete hash and signature checks. Independent verification values are published on [Nagu's verification page](https://nagu.co/codex-quota-monitor-trust.html). Do not bypass your organization's security policy.
+Follow [INSTALLATION.txt](INSTALLATION.txt) and compare the EXE SHA-256 with the release checksum and [product website](https://codex-tracker.nagu.co/#download). Store and direct installations use separate local profiles.
 
 ## Local data and LAN sharing
 
@@ -37,7 +34,7 @@ Removing an account moves its data to the app's Trash. Uninstalling preserves th
 
 ## Release verification
 
-The release was built from the exact annotated source revision recorded in [the artifact manifest](docs/releases/v1.5.0.json). [Verification results and remaining platform limitations](docs/releases/v1.5.0-verification.json) are published alongside it. This direct release does not claim historical Phase 8/9 certification or Microsoft Store certification. Old release candidates remain identifiable as prereleases.
+The release was built from the exact annotated source revision recorded in [the artifact manifest](docs/releases/v1.5.1.json). [Verification results and remaining platform limitations](docs/releases/v1.5.1-verification.json) are published alongside it. This direct release does not claim historical Phase 8/9 certification or Microsoft Store certification. Old release candidates remain identifiable as prereleases.
 
 This public repository contains distribution documentation and verification tooling. The proprietary application source is maintained privately. The application is freeware, not open source; the complete [license](LICENSE.txt) controls use and redistribution. See [third-party notices](THIRD-PARTY-NOTICES.md).
 

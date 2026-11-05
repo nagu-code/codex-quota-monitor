@@ -1,0 +1,22 @@
+{
+  "schemaVersion": 2,
+  "status": "verified-unsigned-release",
+  "siteHost": "codex-tracker.nagu.co",
+  "release": {
+    "version": "1.5.1",
+    "tag": "v1.5.1"
+  },
+  "source": {
+    "privateRcTag": "v1.5.1-rc.2",
+    "privateRcCommit": "21ecdde0c8fee86704b50d83a48bc95a313cb413",
+    "packageLockSha256": "D3D21A480867E22E282C288DF00919864D2F401671852349C13D1661D72C9F67"
+  },
+  "artifacts": [
+    {
+      "filename": "Codex-Quota-Monitor-Setup-1.5.1-x64-Unsigned.exe",
+      "sizeBytes": 202503366,
+      "sha256": "E64943C153EC59B681170015191105ABB7B8BA60F1A552692A48FF21C21151C4",
+      "downloadUrl": "https://github.com/nagu-code/codex-quota-monitor/releases/download/v1.5.1/Codex-Quota-Monitor-Setup-1.5.1-x64-Unsigned.exe"
+    }
+  ]
+}
