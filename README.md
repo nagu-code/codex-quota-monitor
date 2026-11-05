@@ -2,7 +2,7 @@
 
 A calm desktop dashboard for your Codex accounts, by [Nagu](https://nagu.co/).
 
-**Windows 1.5.0** is the current direct-download release. Get the [EXE or ZIP](https://codex-tracker.nagu.co/#downloads) from the product website or [GitHub Releases](https://github.com/nagu-code/codex-quota-monitor/releases/tag/v1.5.0).
+**Windows 1.5.0** is the current direct-download release. Get the [EXE or ZIP](https://codex-tracker.nagu.co/#download) from the product website or [GitHub Releases](https://github.com/nagu-code/codex-quota-monitor/releases/tag/v1.5.0).
 
 ![Dashboard with fictional demonstration accounts](docs/assets/dashboard-light.webp)
 
