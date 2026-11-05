@@ -7,8 +7,8 @@ updates, or continued availability.
 ## Where to ask
 
 - Check the canonical [Codex Quota Monitor product website](https://codex-tracker.nagu.co/)
-  for the published release status and verification guidance. While certification
-  is pending, a planned filename or installation guide is not a live-download or
+  for the published release status and verification guidance. Store certification
+  is separate from direct downloads. A filename alone is not a verification or
   safety claim.
 - Use a public GitHub issue for a reproducible product bug, installation problem,
   feature suggestion, or public-documentation correction.
