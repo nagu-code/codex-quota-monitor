@@ -1,54 +1,15 @@
 # Security policy
 
-## Report a vulnerability privately
+Codex Quota Monitor is a proprietary freeware desktop application maintained by Nagu Corporate Private Limited. Native Linux and macOS builds are being validated alongside the existing Windows distribution; see `docs/DESKTOP-CROSS-PLATFORM.md` for readiness limits.
 
-Send suspected vulnerabilities to **kj@nagu.co**. Please do not open a public
-issue, discussion, or pull request for a security report.
+Report suspected vulnerabilities privately to **kj@nagu.co**. Do not include access tokens, account cookies, `auth.json`, or other credentials in a report.
 
-Include the affected version, a clear description, reproduction steps, and the
-potential impact when possible. Do not send live access tokens, account cookies,
-passwords, `auth.json`, DPAPI vault contents, private keys, or other credentials.
-Use redacted examples instead. If sensitive material is exposed accidentally,
-revoke or rotate it before continuing the report.
+The application uses a sandboxed Electron renderer, context isolation, a restrictive content security policy, an allowlisted browser-authentication URL flow, validated IPC senders, a local privileged application protocol, and hardened Electron fuses. Saved credentials use Electron safeStorage backed by Windows DPAPI, macOS Keychain, or a secure Linux keyring, with a verified encrypt/decrypt round trip before plaintext removal. Linux rejects `basic_text` and unknown keyring backends. Unix application directories use owner-only permissions; temporary helper files inherit a restrictive umask. Existing Windows vaults keep their format. Do not copy vaults across OS profiles or bypass keyring checks. Electron embedded ASAR integrity validation is enabled for Windows/macOS; it is not supported by this Linux packaging path. All targets disable RunAsNode, NODE_OPTIONS and Node inspector switches in packaged Electron.
 
-We will review reports and coordinate disclosure as resources permit. This
-project does not currently offer a bug-bounty program or promise payment for
-reports.
+The Windows locally signed distribution uses the Nagu Corporate internal code-signing certificate; the separately labelled unsigned distribution is intentionally Authenticode `NotSigned` and must be verified by its independently published SHA-256 value. Mac test builds use ad-hoc signing and are not public releases. Public Mac distribution requires a stable Developer ID identity and notarization; native build commands never publish artifacts.
 
-## Supported releases
+The application does not scan Codex conversations or local session logs. Quota insights are derived only from the canonical account rate-limit response and locally retained quota observations.
 
-Only the most recent version published by Nagu Corporate Private Limited on
-this repository's GitHub Releases page is eligible for security fixes. Drafts,
-release candidates, mirrors, repackaged installers, modified binaries, and older
-versions are not supported. If no public release exists yet, no public build is
-supported.
+The desktop automatically starts a password-free HTTP LAN viewer on port 4319 (fallback through 4329). Use only on trusted networks; do not forward it to the internet. It accepts private IPv4/loopback clients and exact local IP/port Host headers. Foreign Origins and cross-site API requests are rejected. The static-file manifest and explicit display-data allowlist exclude credential files, authentication state, raw provider errors and filesystem paths. No Electron IPC is exposed. The only write route requests the existing desktop Refresh all operation: it requires a matching Origin and custom header, coalesces concurrent requests and throttles rapid repeats. There are no account-management HTTP endpoints. The listener bounds connections and event streams, drops slow viewers and closes on Quit. Network access still depends on the OS firewall; the app does not weaken firewall rules or configure router forwarding. HTTP is intentionally unauthenticated and unencrypted, so these request guards are not a substitute for a trusted network.
 
-## Safe research boundaries
-
-- Test only accounts and systems you own or are authorized to use.
-- Do not access another person's data, disrupt service, degrade availability, or
-  use social engineering.
-- Stop and report the issue if testing could expose credentials or personal data.
-- Allow reasonable time for investigation and remediation before disclosure.
-
-These guidelines do not authorize activity prohibited by law or by the terms of
-any third-party service.
-
-## Security design summary
-
-Codex Quota Monitor is designed as a local Windows desktop application. Its
-security controls include a sandboxed Electron renderer, context isolation, a
-restrictive content security policy, allowlisted browser-authentication URLs,
-validated IPC senders, a local privileged application protocol, and hardened
-Electron fuses. Saved account credentials are encrypted using Electron safe
-storage backed by Windows DPAPI for the current Windows user and are verified by
-an encrypt/decrypt round trip before plaintext cleanup.
-
-The app does not scan Codex conversations or local session logs. Quota insights
-come from the canonical account rate-limit response and locally retained quota
-observations. Authentication is performed through the bundled OpenAI Codex
-client and its browser sign-in flow.
-
-Release notes, checksums, signatures, and provenance supplied with a particular
-release are the evidence for that release. This policy is not itself a
-certification of an unpublished candidate or unofficial binary.
+The bundled Codex version is pinned. Dependency, protocol, and packaged-render checks must pass before a release is distributed.

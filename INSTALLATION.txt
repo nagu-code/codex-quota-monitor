@@ -201,11 +201,11 @@ UNINSTALL, REINSTALL AND RESET
    all hash/signature checks, and run its installer. Use the same Windows account
    if you expect that account's DPAPI-protected saved credentials to remain usable.
 5. If support directs you to test with a clean app profile, first close the app and
-   rename (do not delete) the current user's "%APPDATA%\Codex Quota Monitor" folder
+   rename (do not delete) the current user's "%APPDATA%\codex-quota-monitor" folder
    to a dated backup name. This resets the app's local view on next launch. That
    backup can contain sensitive encrypted account data: do not share or upload it.
    Restore it only under the same Windows account. Delete it permanently only when
-   you intentionally accept losing saved accounts, preferences and local history.
+   you intentionally accept losing saved accounts, preferences and local readings.
 
 LEGAL AND PRODUCT STATUS
 

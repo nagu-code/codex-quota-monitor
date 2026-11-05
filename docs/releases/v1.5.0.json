@@ -1,0 +1,61 @@
+{
+  "schemaVersion": 1,
+  "status": "verified-desktop-release",
+  "siteHost": "codex-tracker.nagu.co",
+  "release": {
+    "version": "1.5.0",
+    "tag": "v1.5.0"
+  },
+  "source": {
+    "privateRcTag": "v1.5.0-rc.21",
+    "privateRcCommit": "7144485e0e97698d5fc04e226713a116606a2b46",
+    "packageLockSha256": "536851821FD94399BD8D2D553250EC5F667C68A48AB4B392D62A7CCD43F79AA3"
+  },
+  "provenance": {
+    "sha256": "7963ACDC7F5166E97943F08FCB717E1B3F9F267BCD6F428EE9CC6A4EAA97FEB2"
+  },
+  "certificate": {
+    "filename": "Nagu-Corporate-Code-Signing.cer",
+    "sizeBytes": 1260,
+    "sha256": "0870FDFAEC243A0B46564F70338AC166B57F6A2C68B7024FE08FBA9F15ED5F7F",
+    "thumbprintSha1": "8452BCAFAD093D33D122097AD7D112A42A26526D"
+  },
+  "artifacts": [
+    {
+      "filename": "Codex-Quota-Monitor-Setup-1.5.0-x64-Unsigned.exe",
+      "sizeBytes": 202505673,
+      "sha256": "22323FF855CE5B9E06BDAB49A442FFD8AF4F7E208B4223F3DD35AE8B2B1E9771",
+      "downloadUrl": "https://github.com/nagu-code/codex-quota-monitor/releases/download/v1.5.0/Codex-Quota-Monitor-Setup-1.5.0-x64-Unsigned.exe"
+    },
+    {
+      "filename": "INSTALLATION.txt",
+      "sizeBytes": 11763,
+      "sha256": "92A6CF9266FEFCFD0AF337AFD44D615F5992447A91BCD55FD92B3D12ABAFFEC1",
+      "downloadUrl": null
+    },
+    {
+      "filename": "LICENSE.txt",
+      "sizeBytes": 7829,
+      "sha256": "118543F6B3768F0A0A52155811575970893B620CC9194717A94086538FECE956",
+      "downloadUrl": null
+    },
+    {
+      "filename": "Nagu-Codex-Quota-Monitor-1.5.0-Locally-Signed.zip",
+      "sizeBytes": 202580114,
+      "sha256": "91A0F89385860866E3F90372FA96A8078B0E0107D6FDF38B4DFF35322C81D19B",
+      "downloadUrl": "https://github.com/nagu-code/codex-quota-monitor/releases/download/v1.5.0/Nagu-Codex-Quota-Monitor-1.5.0-Locally-Signed.zip"
+    },
+    {
+      "filename": "SHA256SUMS.p7s",
+      "sizeBytes": 1912,
+      "sha256": "7897959B70C02DDCD082F6882A9F69A6991CA47FCD9A1365ED020ECF759D1A55",
+      "downloadUrl": null
+    },
+    {
+      "filename": "SHA256SUMS.txt",
+      "sizeBytes": 392,
+      "sha256": "BA3CA31E0F421B7D945AB61F4A2D2064CAC43AF066C652F15545A75C80C6A7AC",
+      "downloadUrl": null
+    }
+  ]
+}

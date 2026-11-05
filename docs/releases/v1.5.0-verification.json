@@ -1,0 +1,53 @@
+{
+  "schemaVersion": 1,
+  "kind": "desktop-release-verification",
+  "generatedAtUtc": "2026-11-05T11:22:17.814Z",
+  "release": {
+    "version": "1.5.0",
+    "tag": "v1.5.0"
+  },
+  "source": {
+    "privateRcTag": "v1.5.0-rc.21",
+    "privateRcCommit": "7144485e0e97698d5fc04e226713a116606a2b46",
+    "packageLockSha256": "536851821FD94399BD8D2D553250EC5F667C68A48AB4B392D62A7CCD43F79AA3"
+  },
+  "provenanceSha256": "7963ACDC7F5166E97943F08FCB717E1B3F9F267BCD6F428EE9CC6A4EAA97FEB2",
+  "tests": {
+    "total": 521,
+    "passed": 518,
+    "skipped": 3,
+    "failed": 0
+  },
+  "productionDependencyVulnerabilities": 0,
+  "verification": [
+    "fresh annotated-tag clone and locked dependencies",
+    "identical signed/unsigned application resources",
+    "installer Authenticode and timestamp",
+    "ZIP inventory and internal checksums",
+    "detached checksum signatures"
+  ],
+  "limitations": [
+    "Microsoft Store publisher enrollment and certification pending",
+    "native macOS and Linux acceptance pending",
+    "Windows 10 native acceptance not repeated; Windows 11 is the exercised platform"
+  ],
+  "antivirus": {
+    "completedAtUtc": "2026-11-05T11:22:58.6586302Z",
+    "antivirusEnabled": true,
+    "realTimeProtectionEnabled": true,
+    "customScanStart": "2026-11-05T11:22:55.3075428Z",
+    "customScanEnd": "2026-11-05T11:22:58.5179653Z",
+    "productDetections": 0,
+    "completionEventVerified": true
+  },
+  "runtime": {
+    "savedLoginRecovered": true,
+    "platform": "Windows 11",
+    "manualLanRefresh": true,
+    "metadataPreserved": true,
+    "savedAccounts": 1,
+    "app": "signed release unpacked application",
+    "status": "passed",
+    "refreshedAt": "2026-11-05T11:34:07.905Z"
+  }
+}
